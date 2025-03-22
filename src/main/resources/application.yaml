@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  servlet:
+    context-path: "/bookstore/api"
+spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/bookstore?useSSL=false&createDatabaseIfNotExist=true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+jwt:
+  base64-secret: "PxUk3X2id7NTWG35uBHKAyFGnvLhXTJjFJYRR+JTdaRAeNjxQ3V1ezqslYcjNMc3ZH1+M3te/l4Vh1njqMsebA=="
+  valid-duration-in-seconds: 3600 # 1-hour
+  refresh-token-validity-in-seconds: 86400 # 1-days
