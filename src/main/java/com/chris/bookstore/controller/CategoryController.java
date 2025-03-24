@@ -34,39 +34,4 @@ public class CategoryController {
         return res;
     }
 
-    @PostMapping
-    public ApiResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request){
-        CategoryResponse creationResponse = this.categoryService.handleCreateCategory(request);
-
-        ApiResponse<CategoryResponse> res = new ApiResponse<CategoryResponse>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setResult(creationResponse);
-        res.setMessage("Creating book succeed!");
-
-        return res;
-    }
-
-    @PutMapping("/{id}")
-    public ApiResponse<CategoryResponse> updateCategory(@Valid @RequestBody CategoryRequest request,
-                                                        @PathVariable Long id){
-        CategoryResponse creationResponse = this.categoryService.handleUpdateCategory(request, id);
-
-        ApiResponse<CategoryResponse> res = new ApiResponse<CategoryResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(creationResponse);
-        res.setMessage("Updating category succeed!");
-
-        return res;
-    }
-
-    @DeleteMapping("/{id}")
-    public ApiResponse<CategoryResponse> deleteCategory(@Valid @PathVariable Long id){
-        this.categoryService.handleDeleteCategory(id);
-
-        ApiResponse<CategoryResponse> res = new ApiResponse<CategoryResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Deleting category succeed!");
-
-        return res;
-    }
 }

@@ -12,7 +12,9 @@ import com.chris.bookstore.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -20,16 +22,19 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
+    private final CloudinaryService cloudinaryService;
 
     public BookService(
             BookRepository bookRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            CloudinaryService cloudinaryService) {
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
+        this.cloudinaryService = cloudinaryService;
     }
     //-------------------------------- BOOK -------------------------------------------------
 
-    public BookCreationResponse handleCreateBook(BookRequest request) {
+    public BookCreationResponse handleCreateBook(BookRequest request, MultipartFile file) throws IOException {
         Category category = this.categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
 
@@ -40,7 +45,7 @@ public class BookService {
         book.setPrice(request.getPrice());
         book.setStock(request.getStock());
         book.setCategory(category);
-        book.setImageUrl(request.getImageUrl());
+        book.setImageUrl(cloudinaryService.uploadFile(file).get("url").toString());
 
         bookRepository.save(book);
 
@@ -59,7 +64,7 @@ public class BookService {
         }).toList();
     }
 
-    public BookCreationResponse handleUpdateBook(BookRequest request, Long id) {
+    public BookCreationResponse handleUpdateBook(BookRequest request, MultipartFile file, Long id) throws IOException {
         Category category = this.categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
 
@@ -72,7 +77,7 @@ public class BookService {
         existingBook.setPrice(request.getPrice());
         existingBook.setStock(request.getStock());
         existingBook.setCategory(category);
-        existingBook.setImageUrl(request.getImageUrl());
+        existingBook.setImageUrl(cloudinaryService.uploadFile(file).get("url").toString());
 
         bookRepository.save(existingBook);
 

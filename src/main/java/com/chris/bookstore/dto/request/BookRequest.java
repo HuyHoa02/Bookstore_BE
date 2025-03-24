@@ -8,7 +8,6 @@ public class BookRequest {
     private double price;
     private Integer stock;
     private Long categoryId;
-    private String imageUrl;
 
     public String getTitle() {
         return title;
@@ -56,13 +55,5 @@ public class BookRequest {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 }

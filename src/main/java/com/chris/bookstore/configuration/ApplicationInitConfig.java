@@ -16,6 +16,14 @@ public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
     UserRepository userRepository;
 
+    public  ApplicationInitConfig(
+            PasswordEncoder passwordEncoder,
+            UserRepository userRepository
+    ){
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+    }
+
     static final String ADMIN_USER_NAME = "admin";
 
     static final String ADMIN_PASSWORD = "admin";
@@ -29,7 +37,7 @@ public class ApplicationInitConfig {
             if (userRepository.findByUsername(ADMIN_USER_NAME) == null) {
                 User user = new User();
                 user.setUsername(ADMIN_USER_NAME);
-                user.setPassword(ADMIN_PASSWORD);
+                user.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
                 user.setRole(Role.ADMIN);
                 user.setEmail(ADMIN_EMAIL);
 

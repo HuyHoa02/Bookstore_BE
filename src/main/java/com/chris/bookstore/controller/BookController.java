@@ -46,40 +46,4 @@ public class BookController {
         return res;
     }
 
-    @PostMapping
-    public ApiResponse<BookCreationResponse> createBook(@Valid @RequestBody BookRequest request){
-        BookCreationResponse bookCreationResponse = this.bookService.handleCreateBook(request);
-
-        ApiResponse<BookCreationResponse> res = new ApiResponse<BookCreationResponse>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setResult(bookCreationResponse);
-        res.setMessage("Creating book succeed!");
-
-        return res;
-    }
-
-    @PutMapping("/{id}")
-    public ApiResponse<BookCreationResponse> updateBook(@Valid @RequestBody BookRequest request,
-                                                        @PathVariable(value = "id") Long id){
-        BookCreationResponse bookCreationResponse = this.bookService.handleUpdateBook(request, id);
-
-        ApiResponse<BookCreationResponse> res = new ApiResponse<BookCreationResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(bookCreationResponse);
-        res.setMessage("Updating book succeed!");
-
-        return res;
-    }
-
-
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteBook(@PathVariable(value = "id") Long id){
-        this.bookService.handleDeleteBook(id);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Deleting book succeed!");
-
-        return res;
-    }
 }

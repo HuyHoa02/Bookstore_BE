@@ -31,16 +31,4 @@ public class OrderController {
         return res;
     }
 
-    @PutMapping("/{orderId}/{option}")
-    public ApiResponse<Void> updateOrderStatus(@PathVariable(value = "orderId") Long orderId
-                                                ,@PathVariable(value = "option") int option)
-    {
-        this.orderService.updateStatus(orderId, option);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status succeed!");
-
-        return res;
-    }
 }
