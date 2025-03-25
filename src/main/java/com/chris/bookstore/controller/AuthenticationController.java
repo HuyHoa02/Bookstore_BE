@@ -2,6 +2,7 @@ package com.chris.bookstore.controller;
 
 import com.chris.bookstore.dto.request.AddressRequest;
 import com.chris.bookstore.dto.request.AuthenticationRequest;
+import com.chris.bookstore.dto.request.EmailVerifyRequest;
 import com.chris.bookstore.dto.request.RegisterRequest;
 import com.chris.bookstore.dto.response.AddressResponse;
 import com.chris.bookstore.dto.response.ApiResponse;
@@ -12,8 +13,10 @@ import com.chris.bookstore.enums.Role;
 import com.chris.bookstore.exception.AppException;
 import com.chris.bookstore.service.AddressService;
 import com.chris.bookstore.service.AuthenticationService;
+import com.chris.bookstore.service.MailService;
 import com.chris.bookstore.service.UserService;
 import com.chris.bookstore.util.SecurityUtil;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +39,7 @@ public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final UserService userService;
     private final SecurityUtil securityUtil;
+    private final MailService mailService;
 
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidity;
@@ -44,11 +48,13 @@ public class AuthenticationController {
     public AuthenticationController(AuthenticationService authenticationService,
                                     AuthenticationManagerBuilder authenticationManagerBuilder,
                                     SecurityUtil securityUtil,
-                                    UserService userService) {
+                                    UserService userService,
+                                    MailService mailService) {
         this.authenticationService = authenticationService;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
+        this.mailService = mailService;
     }
 
     @PostMapping("/login")
@@ -107,7 +113,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-up")
-    public ApiResponse<Void> signup(@Valid @RequestBody RegisterRequest request) {
+    public ApiResponse<Void> signup(@Valid @RequestBody RegisterRequest request) throws MessagingException {
         this.authenticationService.register(request, Role.USER);
 
         ApiResponse<Void> res = new ApiResponse<Void>();
@@ -224,5 +230,16 @@ public class AuthenticationController {
                 .ok()
                 .header(HttpHeaders.SET_COOKIE, resCookie.toString())
                 .body(null);
+    }
+
+    @PostMapping("/verify-email")
+    ApiResponse<String> verifyEmail(@RequestBody EmailVerifyRequest request){
+        this.mailService.verifyEmail(request);
+
+        ApiResponse<String> res = new ApiResponse<String>();
+        res.setStatusCode(HttpStatus.OK.value());
+        res.setMessage("Verifying email succeed");
+
+        return res;
     }
 }

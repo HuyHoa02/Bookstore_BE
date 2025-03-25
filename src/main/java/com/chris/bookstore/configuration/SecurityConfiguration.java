@@ -36,6 +36,7 @@ public class SecurityConfiguration {
             "/auth/logout",
             "/auth/refresh",
             "/auth/sign-up",
+            "/auth/verify-email",
             "/books",
     };
 
