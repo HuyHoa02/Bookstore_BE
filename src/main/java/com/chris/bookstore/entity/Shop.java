@@ -1,28 +1,28 @@
 package com.chris.bookstore.entity;
 
-import com.chris.bookstore.enums.OrderStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "carts")
-public class Cart {
+@Table(name = "shops")
+public class Shop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private double totalAmount = 0;
+    private String shopName;
 
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // The user who owns this shop (bidirectional)
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
-    private List<CartItems> cartItems;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id", nullable = false)
+    private Address shopAddress; // Shop-specific address
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -38,20 +38,28 @@ public class Cart {
         this.id = id;
     }
 
-    public double getTotalAmount() {
-        return totalAmount;
+    public String getShopName() {
+        return shopName;
     }
 
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
     }
 
-    public List<CartItems> getCartItems() {
-        return cartItems;
+    public User getUser() {
+        return user;
     }
 
-    public void setCartItems(List<CartItems> cartItems) {
-        this.cartItems = cartItems;
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Address getShopAddress() {
+        return shopAddress;
+    }
+
+    public void setShopAddress(Address shopAddress) {
+        this.shopAddress = shopAddress;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -68,12 +76,5 @@ public class Cart {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public void clearCart() {
-        if (cartItems != null) {
-            cartItems.clear();
-        }
-        totalAmount = 0;
     }
 }

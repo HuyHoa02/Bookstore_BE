@@ -28,7 +28,11 @@ public class AddressService {
 
         return addresses.stream().map(address -> {
             AddressResponse res = new AddressResponse();
-            res.setAddress(address.getAddress());
+            res.setId(address.getId());
+            res.setStreet(address.getWard());
+            res.setWard(address.getWard());
+            res.setDistrict(address.getDistrict());
+            res.setProvince(address.getProvince());
             return res;
         }).toList();
     }
@@ -37,19 +41,28 @@ public class AddressService {
     {
         User user = this.userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        Address address = new Address();
-        address.setAddress(request.getAddress());
-        address.setUser(user);
 
-        addressRepository.save(address);
+        user.getAddresses().add(new Address(
+                request.getStreet(),
+                request.getWard(),
+                request.getDistrict(),
+                request.getProvince(),
+                user));
+        userRepository.save(user);
     }
 
-    public void updateAddress(Long id, AddressRequest request)
+    public void updateAddress(Long addressId, AddressRequest request)
     {
-        Address address = this.addressRepository.findById(id)
+        User user = this.userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        Address address = this.addressRepository.findById(addressId)
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
-        address.setAddress(request.getAddress());
+        address.setStreet(request.getStreet());
+        address.setWard(request.getWard());
+        address.setDistrict(request.getDistrict());
+        address.setProvince(request.getProvince());
 
         addressRepository.save(address);
     }

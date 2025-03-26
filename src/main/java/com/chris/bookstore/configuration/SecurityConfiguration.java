@@ -37,14 +37,20 @@ public class SecurityConfiguration {
             "/auth/refresh",
             "/auth/sign-up",
             "/auth/verify-email",
-            "/books",
+            "/books/**",
+            "/categories/**",
     };
 
     private final String [] USER_ENDPIONTS = {
+            "/users/**",
     };
 
     private final String[] ADMIN_ENDPOINTS = {
             "/admin/**",
+    };
+
+    private final String[] SHOP_ENDPOINTS = {
+            "/shops/**",
     };
 
     @Bean
@@ -55,6 +61,7 @@ public class SecurityConfiguration {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(USER_ENDPIONTS).hasAuthority("ROLE_USER")
                         .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_SHOP")
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

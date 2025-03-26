@@ -22,7 +22,7 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping
+    @GetMapping("/get-all")
     public ApiResponse<List<CategoryResponse>> getAllCategories(){
         List<CategoryResponse> categories = this.categoryService.getAllCategories();
 

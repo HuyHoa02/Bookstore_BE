@@ -22,6 +22,8 @@ public class Order {
     @Column(nullable = false)
     private double totalAmount;
 
+    private String note;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
@@ -94,6 +96,14 @@ public class Order {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

@@ -1,16 +1,10 @@
 package com.chris.bookstore.service;
 
-import com.chris.bookstore.entity.Address;
-import com.chris.bookstore.entity.Cart;
-import com.chris.bookstore.entity.Order;
-import com.chris.bookstore.entity.OrderDetails;
+import com.chris.bookstore.entity.*;
 import com.chris.bookstore.enums.ErrorCode;
 import com.chris.bookstore.enums.OrderStatus;
 import com.chris.bookstore.exception.AppException;
-import com.chris.bookstore.repository.AddressRepository;
-import com.chris.bookstore.repository.CartRepository;
-import com.chris.bookstore.repository.OrderDetailsRepository;
-import com.chris.bookstore.repository.OrderRepository;
+import com.chris.bookstore.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,30 +14,29 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderDetailsRepository orderDetailsRepository;
-    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
     private final AddressRepository addressRepository;
 
     public OrderService(OrderRepository orderRepository,
-                        CartRepository cartRepository,
+                        UserRepository userRepository,
                         OrderDetailsRepository orderDetailsRepository,
                         AddressRepository addressRepository)
     {
         this.orderRepository = orderRepository;
         this.orderDetailsRepository = orderDetailsRepository;
-        this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
         this.addressRepository = addressRepository;
     }
 
-    public void placeAnOrder(Long cartId, Long AddressId){
-        Cart existingCart = this.cartRepository.findById(cartId)
-                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_EXISTED));
-        Address existingAddress = this.addressRepository.findByUserIdAndId(existingCart.getUser().getId(), AddressId);
+    public void placeAnOrder(Long userId, Long AddressId){
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Address existingAddress = this.addressRepository.findByUserIdAndId(user.getId(), AddressId);
 
-        if(existingCart.getTotalAmount() == 0)
-            throw new AppException(ErrorCode.CART_EMPTY);
+        Cart currentUserCart = user.getCart();
 
         Order newOrder = new Order();
-        List<OrderDetails> detailsList = existingCart.getCartItems().stream().map(item -> {
+        List<OrderDetails> detailsList = currentUserCart.getCartItems().stream().map(item -> {
             OrderDetails newDetails = new OrderDetails();
             newDetails.setOrder(newOrder);
             newDetails.setBook(item.getBook());
@@ -53,12 +46,12 @@ public class OrderService {
             return newDetails;
         }).toList();
         newOrder.setOrderDetails(detailsList);
-        newOrder.setTotalAmount(existingCart.getTotalAmount());
+        newOrder.setTotalAmount(currentUserCart.getTotalAmount());
         newOrder.setStatus(OrderStatus.PENDING);
-        newOrder.setUser(existingCart.getUser());
-        newOrder.setShippingAddress(existingAddress.getAddress());
+        newOrder.setUser(user);
+        newOrder.setShippingAddress(existingAddress.toString());
 
-        cartRepository.deleteById(cartId);
+        currentUserCart.clearCart();
 
         orderRepository.save(newOrder);
     }

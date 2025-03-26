@@ -18,62 +18,17 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
-
-    private final BookService bookService;
     private final CategoryService categoryService;
     private final OrderService orderService;
 
     public AdminController(
-            BookService bookService,
             CategoryService categoryService,
             OrderService orderService
     ){
-        this.bookService = bookService;
         this.categoryService = categoryService;
         this.orderService = orderService;
     }
-
-    @PostMapping(value = "/create-book")
-    public ApiResponse<BookCreationResponse> createBook(
-            @Valid @RequestPart("book") BookRequest request,
-            @RequestPart("image") MultipartFile file) throws IOException {
-        BookCreationResponse bookCreationResponse = this.bookService.handleCreateBook(request, file);
-
-        ApiResponse<BookCreationResponse> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setResult(bookCreationResponse);
-        res.setMessage("Creating book succeed!");
-
-        return res;
-    }
-
-    @PutMapping("/update-book/{id}")
-    public ApiResponse<BookCreationResponse> updateBook(@Valid @RequestBody BookRequest request,
-                                                        @RequestParam(name = "image") MultipartFile file,
-                                                        @PathVariable(value = "id") Long id) throws IOException {
-        BookCreationResponse bookCreationResponse = this.bookService.handleUpdateBook(request,file, id);
-
-        ApiResponse<BookCreationResponse> res = new ApiResponse<BookCreationResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(bookCreationResponse);
-        res.setMessage("Updating book succeed!");
-
-        return res;
-    }
-
-
-    @DeleteMapping("/delete-book/{id}")
-    public ApiResponse<Void> deleteBook(@PathVariable(value = "id") Long id){
-        this.bookService.handleDeleteBook(id);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Deleting book succeed!");
-
-        return res;
-    }
-
-//-------------------------------------CART---------------------------------------------
+//-------------------------------------CATEGORY---------------------------------------------
 
     @PostMapping("/create-category")
     public ApiResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request){
@@ -125,4 +80,5 @@ public class AdminController {
 
         return res;
     }
+    //--------------------------------SHOP-----------------------------------------
 }

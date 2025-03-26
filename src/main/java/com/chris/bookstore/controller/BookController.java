@@ -22,7 +22,7 @@ public class BookController {
         this.bookService = bookService;
     }
 
-    @GetMapping
+    @GetMapping("get-all")
     public ApiResponse<List<BookCreationResponse>> getAllBooks(){
         List<BookCreationResponse> books = this.bookService.getAllBooks();
 
@@ -34,7 +34,7 @@ public class BookController {
         return res;
     }
 
-    @GetMapping("/{title}")
+    @GetMapping("/get-by-title/{title}")
     public ApiResponse<List<BookCreationResponse>> getBook(@PathVariable(value = "title") String title){
         List<BookCreationResponse> books = this.bookService.getBookByTitle(title);
 
