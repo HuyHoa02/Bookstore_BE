@@ -11,6 +11,7 @@ public class BookCreationResponse {
     private Integer stock;
     private String categoryName;
     private String imageUrl;
+    private Long shopId;
 
     public String getTitle() {
         return title;
@@ -68,6 +69,14 @@ public class BookCreationResponse {
         this.imageUrl = imageUrl;
     }
 
+    public Long getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(Long shopId) {
+        this.shopId = shopId;
+    }
+
     public BookCreationResponse(Book book) {
         this.title = book.getTitle();
         this.author = book.getAuthor();
@@ -76,6 +85,7 @@ public class BookCreationResponse {
         this.stock = book.getStock();
         this.categoryName = book.getCategory().getName();
         this.imageUrl = book.getImageUrl();
+        this.shopId = book.getShop().getId();
     }
 
 

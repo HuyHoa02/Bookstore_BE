@@ -47,7 +47,7 @@ public class SecurityUtil {
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
-    private  String buildScope(User user){
+    public  String buildScope(User user){
         StringJoiner stringJoiner = new StringJoiner(" ");
         stringJoiner.add("ROLE_" + user.getRole().name());
         return  stringJoiner.toString();

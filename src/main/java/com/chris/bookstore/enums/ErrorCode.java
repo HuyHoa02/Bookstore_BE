@@ -14,7 +14,9 @@ public enum ErrorCode {
     USER_EXISTED(1008,"User is t existed in database"),
     INVALID_REFRESH_TOKEN(1009,"Can not found refresh token in cookie"),
     TOKEN_EXPIRED(1010,"Token is expired"),
-    VERIFY_EMAIL_FAILED(1010,"Email validation code is invalid"),
+    VERIFY_EMAIL_FAILED(1011,"Email validation code is invalid"),
+    SHOP_EXISTED(1012,"Current user's shop existed in database"),
+    SHOP_NOT_EXISTED(1013,"Current user's shop not existed in database"),
     UNCATEGORIZED_EXCEPTION(9999,"Uncategorized exception occur")
     ;
 

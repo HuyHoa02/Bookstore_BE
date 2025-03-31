@@ -1,17 +1,14 @@
 package com.chris.bookstore.controller;
 
-import com.chris.bookstore.dto.request.AddressRequest;
 import com.chris.bookstore.dto.request.AuthenticationRequest;
 import com.chris.bookstore.dto.request.EmailVerifyRequest;
 import com.chris.bookstore.dto.request.RegisterRequest;
-import com.chris.bookstore.dto.response.AddressResponse;
 import com.chris.bookstore.dto.response.ApiResponse;
 import com.chris.bookstore.dto.response.AuthenticationResponse;
 import com.chris.bookstore.entity.User;
 import com.chris.bookstore.enums.ErrorCode;
 import com.chris.bookstore.enums.Role;
 import com.chris.bookstore.exception.AppException;
-import com.chris.bookstore.service.AddressService;
 import com.chris.bookstore.service.AuthenticationService;
 import com.chris.bookstore.service.MailService;
 import com.chris.bookstore.service.UserService;
@@ -30,7 +27,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -64,7 +60,6 @@ public class AuthenticationController {
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-
         //Convert to Response class
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
 
@@ -88,7 +83,6 @@ public class AuthenticationController {
         authenticationResponse.setRefreshToken(refreshToken);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
         userService.updateUserToken(refreshToken, request.getUsername());
 
         //Set cookies
@@ -184,8 +178,9 @@ public class AuthenticationController {
     @GetMapping("/account")
     public ApiResponse<AuthenticationResponse.UserLogin> getAccount()
     {
-        String username = this.securityUtil.getCurrentUserJWT();
-        User currentUser = this.userService.getUserByUsername(username);
+//        String username = this.securityUtil.getCurrentUserJWT();
+//        User currentUser = this.userService.getUserByUsername(username);
+        User currentUser = userService.getCurrentUser();
 
         AuthenticationResponse.UserLogin userLogin = new AuthenticationResponse.UserLogin();
         if(currentUser != null){

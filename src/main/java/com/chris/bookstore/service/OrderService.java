@@ -56,14 +56,14 @@ public class OrderService {
         orderRepository.save(newOrder);
     }
 
-    public void updateStatus(Long order, int option) {
+    public void updateStatus(Long order, OrderStatus option) {
         Order existingOrder = this.orderRepository.findById(order)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
         int currentStatus = existingOrder.getStatus().getCode();
         OrderStatus newStatus;
 
-        switch (option) {
+        switch (option.getCode()) {
             case 1:
                 if (currentStatus == 0) {
                     newStatus = OrderStatus.CONFIRMED;

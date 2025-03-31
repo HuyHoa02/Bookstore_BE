@@ -7,7 +7,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -48,8 +50,11 @@ public class User {
     @JoinColumn(name = "cart_id", referencedColumnName = "id")
     private Cart cart;
 
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "owner")
     private Shop shop;
+
+    @ManyToMany(mappedBy = "followers")
+    private Set<Shop> followedShop = new HashSet<>();
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
@@ -188,5 +193,21 @@ public class User {
 
     public void setVerificationExpiry(LocalDateTime verificationExpiry) {
         this.verificationExpiry = verificationExpiry;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
+    public Set<Shop> getFollowedShop() {
+        return followedShop;
+    }
+
+    public void setFollowedShop(Set<Shop> followedShop) {
+        this.followedShop = followedShop;
     }
 }

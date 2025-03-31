@@ -13,11 +13,12 @@ import java.util.Collections;
 @Component("userDetailsService")
 public class UserDetailsCustom implements UserDetailsService {
     private final UserService userService;
+    private final SecurityUtil util;
 
-    public UserDetailsCustom(UserService userService){
+    public UserDetailsCustom(UserService userService, SecurityUtil util){
         this.userService = userService;
+        this.util = util;
     }
-
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -25,9 +26,9 @@ public class UserDetailsCustom implements UserDetailsService {
         if(user == null){
             throw new UsernameNotFoundException("Username or Password is incorrect");
         }
-        return new User(
+        return new  User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
+                Collections.singleton(new SimpleGrantedAuthority(util.buildScope(user))));
     }
 }

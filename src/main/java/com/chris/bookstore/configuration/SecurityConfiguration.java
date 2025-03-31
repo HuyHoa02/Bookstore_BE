@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -41,16 +43,12 @@ public class SecurityConfiguration {
             "/categories/**",
     };
 
-    private final String [] USER_ENDPIONTS = {
+    private final String[] USER_ENDPOINTS = {
             "/users/**",
     };
 
     private final String[] ADMIN_ENDPOINTS = {
             "/admin/**",
-    };
-
-    private final String[] SHOP_ENDPOINTS = {
-            "/shops/**",
     };
 
     @Bean
@@ -59,9 +57,8 @@ public class SecurityConfiguration {
         httpSecurity
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(USER_ENDPIONTS).hasAuthority("ROLE_USER")
+                        .requestMatchers(USER_ENDPOINTS).hasAuthority("ROLE_USER")
                         .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_SHOP")
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -70,12 +67,18 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) //401
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) //403
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .anonymous(AbstractHttpConfigurer::disable) // Disable anonymous authentication
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer
                                 .decoder(jwtDecoder())
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(caep));
         return httpSecurity.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -99,9 +102,9 @@ public class SecurityConfiguration {
         };
     }
 
-    public SecretKey getSecretKey(){
+    public SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
-        return new SecretKeySpec(keyBytes, 0 , keyBytes.length, SecurityUtil.JWT_ALGORITHM.getName());
+        return new SecretKeySpec(keyBytes, 0, keyBytes.length, SecurityUtil.JWT_ALGORITHM.getName());
     }
 
     @Bean
@@ -112,11 +115,13 @@ public class SecurityConfiguration {
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-        return  jwtAuthenticationConverter;
-    };
+        return jwtAuthenticationConverter;
+    }
+
+    ;
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }
