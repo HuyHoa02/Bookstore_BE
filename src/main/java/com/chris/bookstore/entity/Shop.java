@@ -36,13 +36,14 @@ public class Shop {
 
     @ManyToMany
     @JoinTable(
-            name = "shop_user",
+            name = "followed",
             joinColumns = @JoinColumn(name = "shop_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> followers = new HashSet<>();
 
-    private double rating = 0;
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ShopRating> ratings = new ArrayList<>();
 
     @Column(nullable = false)
     private boolean available = true;
@@ -125,12 +126,12 @@ public class Shop {
         this.followers = followers;
     }
 
-    public double getRating() {
-        return rating;
+    public List<ShopRating> getRatings() {
+        return ratings;
     }
 
-    public void setRating(double rating) {
-        this.rating = rating;
+    public void setRatings(List<ShopRating> ratings) {
+        this.ratings = ratings;
     }
 
     public boolean isAvailable() {

@@ -61,6 +61,9 @@ public class User {
     @ManyToMany(mappedBy = "followers")
     private Set<Shop> followedShop = new HashSet<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ShopRating> ratings = new ArrayList<>();
+
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
 
@@ -150,6 +153,14 @@ public class User {
 
     public void setPrivileges(Set<Privilege> privileges) {
         this.privileges = privileges;
+    }
+
+    public List<ShopRating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(List<ShopRating> ratings) {
+        this.ratings = ratings;
     }
 
     public LocalDateTime getCreatedAt() {

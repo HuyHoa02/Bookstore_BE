@@ -9,6 +9,7 @@ import com.chris.bookstore.enums.ErrorCode;
 import com.chris.bookstore.enums.Privilege;
 import com.chris.bookstore.exception.AppException;
 import com.chris.bookstore.repository.AddressRepository;
+import com.chris.bookstore.repository.ShopRatingRepository;
 import com.chris.bookstore.repository.ShopRepository;
 import com.chris.bookstore.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -22,16 +23,19 @@ public class ShopService {
     private final UserService userService;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final ShopRatingService shopRatingService;
 
     public ShopService(ShopRepository shopRepository,
                        UserService userService,
                        AddressRepository addressRepository,
-                       UserRepository userRepository)
+                       UserRepository userRepository,
+                       ShopRatingService shopRatingService)
     {
         this.shopRepository = shopRepository;
         this.userService = userService;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.shopRatingService = shopRatingService;
     }
     @Transactional
     public ShopResponse createShop(ShopRequest request) {
@@ -74,7 +78,7 @@ public class ShopService {
         res.setShopName(newShop.getShopName());
         res.setShopAddress(newShop.getShopAddress().toString());
         res.setShopFollowers((long) newShop.getFollowers().size());
-        res.setShopRating(newShop.getRating());
+        res.setShopRating(this.shopRatingService.getShopAverageRating(newShop.getId()));
         res.setShopOwnerId(newShop.getOwner().getId());
 
         return res;

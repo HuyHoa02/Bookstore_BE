@@ -11,7 +11,7 @@ public enum ErrorCode {
     STATUS_OPTION_INVALID(1007,"Order status option is not valid"),
     USER_NOT_EXISTED(1008,"User is not existed in database"),
     ADDRESS_NOT_EXISTED(1008,"Address is not existed in database"),
-    USER_EXISTED(1008,"User is t existed in database"),
+    USER_EXISTED(1008,"User is existed in database"),
     INVALID_REFRESH_TOKEN(1009,"Can not found refresh token in cookie"),
     TOKEN_EXPIRED(1010,"Token is expired"),
     VERIFY_EMAIL_FAILED(1011,"Email validation code is invalid"),
@@ -19,6 +19,10 @@ public enum ErrorCode {
     SHOP_NOT_EXISTED(1013,"Current user's shop not existed in database"),
     INSUFFICIENT_STOCK(1014,"Your current products is out of stock"),
     INVALID_ADDRESS(1015,"Current address is in valid through operation"),
+    ALREADY_RATED(1016,"User already rated this shop before"),
+    INVALID_RATE(1017,"User cant not rate their own shop"),
+    CANNOT_FOLLOW_OWN_SHOP(1018,"User cant not follow their own shop"),
+    ALREADY_FOLLOWED(1019,"User already followed this shop before"),
     UNCATEGORIZED_EXCEPTION(9999,"Uncategorized exception occur")
     ;
 

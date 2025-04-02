@@ -21,19 +21,25 @@ public class UserController {
     private final OrderService orderService;
     private final ShopService shopService;
     private final BookService bookService;
+    private final ShopRatingService shopRatingService;
+    private final UserService userService;
 
 
     public UserController(AddressService addressService,
                           CartService cartService,
                           OrderService orderService,
                           ShopService shopService,
-                          BookService bookService)
+                          BookService bookService,
+                          ShopRatingService shopRatingService,
+                          UserService userService)
     {
         this.addressService = addressService;
         this.cartService = cartService;
         this.orderService = orderService;
         this.shopService = shopService;
         this.bookService = bookService;
+        this.shopRatingService = shopRatingService;
+        this.userService = userService;
     }
 
     @GetMapping("/get-addresses")
@@ -265,6 +271,30 @@ public class UserController {
         ApiResponse<Void> res = new ApiResponse<Void>();
         res.setStatusCode(HttpStatus.OK.value());
         res.setMessage("Updating order's status delivered succeed!");
+
+        return res;
+    }
+
+    @PostMapping("/rate-shop/{shopId}")
+    public ApiResponse<Void> rateShop(@PathVariable Long shopId,
+                                      @Valid @RequestBody RatingRequest request) {
+        shopRatingService.rateShop(shopId, request.getRating(), request.getReview());
+
+        ApiResponse<Void> res = new ApiResponse<>();
+        res.setStatusCode(HttpStatus.CREATED.value());
+        res.setMessage("Rated succeed");
+
+        return res;
+    }
+
+    @PostMapping("/{shopId}/follow")
+    public ApiResponse<Void> followShop(@PathVariable Long shopId) {
+        this.userService.followShop(shopId);
+
+
+        ApiResponse<Void> res = new ApiResponse<>();
+        res.setStatusCode(HttpStatus.CREATED.value());
+        res.setMessage("Rated succeed");
 
         return res;
     }
