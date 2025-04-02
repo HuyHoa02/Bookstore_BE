@@ -1,6 +1,7 @@
 package com.chris.bookstore.entity;
 
 import com.chris.bookstore.enums.OrderStatus;
+import com.chris.bookstore.repository.CartItemsRepository;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -22,7 +23,7 @@ public class Cart {
 
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
-    private List<CartItems> cartItems;
+    private List<CartItems> cartItems = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -70,10 +71,12 @@ public class Cart {
         this.updatedAt = updatedAt;
     }
 
-    public void clearCart() {
-        if (cartItems != null) {
+    public void clearCart(CartItemsRepository cartItemsRepository) {
+        if (cartItems != null && !cartItems.isEmpty()) {
+            cartItemsRepository.deleteAll(cartItems);
             cartItems.clear();
         }
         totalAmount = 0;
     }
+
 }

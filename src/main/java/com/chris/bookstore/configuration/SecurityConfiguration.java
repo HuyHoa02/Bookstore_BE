@@ -1,5 +1,6 @@
 package com.chris.bookstore.configuration;
 
+import com.chris.bookstore.enums.Privilege;
 import com.chris.bookstore.util.SecurityUtil;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
@@ -13,6 +14,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.*;
@@ -25,6 +28,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
@@ -111,14 +117,33 @@ public class SecurityConfiguration {
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-        jwtGrantedAuthoritiesConverter.setAuthoritiesClaimName("role");
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = new ArrayList<>();
+
+            String role = jwt.getClaim("role");
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority(role)); // Convert to Spring Security format
+            }
+
+            List<String> privileges = jwt.getClaim("privileges");
+            if (privileges != null) {
+                for (String privilege : privileges) {
+                    try {
+                        Privilege enumPrivilege = Privilege.valueOf(privilege);
+                        authorities.add(new SimpleGrantedAuthority(enumPrivilege.name()));
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Invalid privilege: " + privilege);
+                    }
+                }
+            }
+            return authorities;
+        });
         return jwtAuthenticationConverter;
     }
 
-    ;
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

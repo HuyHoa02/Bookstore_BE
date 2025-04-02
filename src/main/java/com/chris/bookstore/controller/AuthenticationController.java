@@ -178,8 +178,6 @@ public class AuthenticationController {
     @GetMapping("/account")
     public ApiResponse<AuthenticationResponse.UserLogin> getAccount()
     {
-//        String username = this.securityUtil.getCurrentUserJWT();
-//        User currentUser = this.userService.getUserByUsername(username);
         User currentUser = userService.getCurrentUser();
 
         AuthenticationResponse.UserLogin userLogin = new AuthenticationResponse.UserLogin();

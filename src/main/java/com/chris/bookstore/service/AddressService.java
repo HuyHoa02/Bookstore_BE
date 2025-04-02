@@ -16,15 +16,19 @@ import java.util.List;
 public class AddressService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     public AddressService(AddressRepository addressRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          UserService userService) {
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
-    public List<AddressResponse> getAll(Long userId) {
-        List<Address> addresses = this.addressRepository.findAllByUserId(userId);
+    public List<AddressResponse> getAllAddresses() {
+        User currentUser = this.userService.getCurrentUser();
+        List<Address> addresses = this.addressRepository.findAllByUserId(currentUser.getId());
 
         return addresses.stream().map(address -> {
             AddressResponse res = new AddressResponse();
@@ -39,25 +43,24 @@ public class AddressService {
 
     public void addAddress(AddressRequest request)
     {
-        User user = this.userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User currentUser = this.userService.getCurrentUser();
 
-        user.getAddresses().add(new Address(
+        currentUser.getAddresses().add(new Address(
                 request.getStreet(),
                 request.getWard(),
                 request.getDistrict(),
                 request.getProvince(),
-                user));
-        userRepository.save(user);
+                currentUser));
+        userRepository.save(currentUser);
     }
 
     public void updateAddress(Long addressId, AddressRequest request)
     {
-        User user = this.userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User currentUser = this.userService.getCurrentUser();
 
-        Address address = this.addressRepository.findById(addressId)
-                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
+        Address address = this.addressRepository.findByUserIdAndId(currentUser.getId(), addressId);
+        if(address == null)
+            throw new AppException(ErrorCode.ADDRESS_NOT_EXISTED);
 
         address.setStreet(request.getStreet());
         address.setWard(request.getWard());
@@ -67,11 +70,14 @@ public class AddressService {
         addressRepository.save(address);
     }
 
-    public void deleteAddress(Long id)
+    public void deleteAddress(Long addressId)
     {
-        Address address = this.addressRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
+        User currentUser = this.userService.getCurrentUser();
 
-        addressRepository.deleteById(id);
+        Address address = this.addressRepository.findByUserIdAndId(currentUser.getId(), addressId);
+        if(address == null)
+            throw new AppException(ErrorCode.ADDRESS_NOT_EXISTED);
+
+        addressRepository.deleteById(addressId);
     }
 }

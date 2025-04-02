@@ -9,6 +9,7 @@ import com.chris.bookstore.service.OrderService;
 import com.chris.bookstore.service.ShopService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -67,16 +68,17 @@ public class AdminController {
 
 //----------------------------------ORDER-------------------------------------------
 
-    @PutMapping("/update-order-delivered/{orderId}")
-    public ApiResponse<Void> updateOrderStatusDelivered(@PathVariable(value = "orderId") Long orderId)
+    @PutMapping("/update-order-shipped/{orderId}")
+    public ApiResponse<Void> updateOrderStatusShipped(@PathVariable(value = "orderId") Long orderId)
     {
-        this.orderService.updateStatus(orderId, OrderStatus.DELIVERED);
+        this.orderService.updateStatus(orderId, OrderStatus.SHIPPED);
 
         ApiResponse<Void> res = new ApiResponse<Void>();
         res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status delivred succeed!");
+        res.setMessage("Updating order's status shipped succeed!");
 
         return res;
+        
     }
     @PutMapping("/update-order-cancelled/{orderId}")
     public ApiResponse<Void> updateOrderStatusCancelled(@PathVariable(value = "orderId") Long orderId)

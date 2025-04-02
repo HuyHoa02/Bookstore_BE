@@ -1,5 +1,6 @@
 package com.chris.bookstore.entity;
 
+import com.chris.bookstore.enums.Privilege;
 import com.chris.bookstore.enums.Role;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,6 +37,10 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<Privilege> privileges = new HashSet<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -137,6 +142,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Set<Privilege> getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Set<Privilege> privileges) {
+        this.privileges = privileges;
     }
 
     public LocalDateTime getCreatedAt() {

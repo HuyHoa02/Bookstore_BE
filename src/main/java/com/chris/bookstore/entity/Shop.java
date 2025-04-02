@@ -24,12 +24,15 @@ public class Shop {
     @JoinColumn(name = "user_id", nullable = false)
     private User owner; // The user who owns this shop (bidirectional)
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "address_id", nullable = false)
     private Address shopAddress; // Shop-specific address
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "shop")
     private List<Book> books = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "shop")
+    private List<Order> orders = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -80,6 +83,22 @@ public class Shop {
 
     public void setShopAddress(Address shopAddress) {
         this.shopAddress = shopAddress;
+    }
+
+    public List<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(List<Book> books) {
+        this.books = books;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
     }
 
     public LocalDateTime getCreatedAt() {

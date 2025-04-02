@@ -2,19 +2,10 @@ package com.chris.bookstore.dto.request;
 
 
 public class AddressRequest {
-    private Long userId;
     private String street;
     private String ward;
     private String district;
     private String province;
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
 
     public String getStreet() {
         return street;

@@ -17,6 +17,8 @@ public enum ErrorCode {
     VERIFY_EMAIL_FAILED(1011,"Email validation code is invalid"),
     SHOP_EXISTED(1012,"Current user's shop existed in database"),
     SHOP_NOT_EXISTED(1013,"Current user's shop not existed in database"),
+    INSUFFICIENT_STOCK(1014,"Your current products is out of stock"),
+    INVALID_ADDRESS(1015,"Current address is in valid through operation"),
     UNCATEGORIZED_EXCEPTION(9999,"Uncategorized exception occur")
     ;
 

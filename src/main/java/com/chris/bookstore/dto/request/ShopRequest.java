@@ -5,7 +5,7 @@ import com.chris.bookstore.entity.Address;
 
 public class ShopRequest {
     private String shopName;
-    private Address shopAddress;
+    private Long addressId;
 
     public String getShopName() {
         return shopName;
@@ -15,11 +15,11 @@ public class ShopRequest {
         this.shopName = shopName;
     }
 
-    public Address getShopAddress() {
-        return shopAddress;
+    public Long getAddressId() {
+        return addressId;
     }
 
-    public void setShopAddress(Address shopAddress) {
-        this.shopAddress = shopAddress;
+    public void setAddressId(Long addressId) {
+        this.addressId = addressId;
     }
 }

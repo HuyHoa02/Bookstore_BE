@@ -23,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 @Service
 public class SecurityUtil {
@@ -58,7 +59,13 @@ public class SecurityUtil {
         Instant now = Instant.now();
         Instant validity = now.plus(Long.parseLong(this.jwtKeyExpriration), ChronoUnit.SECONDS);
 
+        User currentUser = this.userService.getUserByUsername(username);
+
         String role = buildScope(this.userService.getUserByUsername(username));
+        List<String> privileges = currentUser.getPrivileges().stream()
+                .map(Enum::name) // Convert enum to String
+                .toList();
+
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
@@ -66,6 +73,7 @@ public class SecurityUtil {
                 .subject(username)
                 .claim("user", dto)
                 .claim("role",role)
+                .claim("privileges",privileges)
                 .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();

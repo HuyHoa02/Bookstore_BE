@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class ShopResponse {
     private String shopName;
-    private Address shopAddress;
+    private String shopAddress;
     private Long shopFollowers;
     private double shopRating;
     private Long shopOwnerId;
@@ -21,11 +21,11 @@ public class ShopResponse {
         this.shopName = shopName;
     }
 
-    public Address getShopAddress() {
+    public String getShopAddress() {
         return shopAddress;
     }
 
-    public void setShopAddress(Address shopAddress) {
+    public void setShopAddress(String shopAddress) {
         this.shopAddress = shopAddress;
     }
 

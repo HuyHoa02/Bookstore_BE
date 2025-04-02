@@ -85,7 +85,7 @@ public class AuthenticationService {
         dataMailDTO.setTo(request.getEmail());
         dataMailDTO.setProps(props);
 
-        this.mailService.sendHtmlMail(dataMailDTO);
+//        this.mailService.sendHtmlMail(dataMailDTO);
 
         userRepository.save(newUser);
     }

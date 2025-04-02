@@ -3,8 +3,8 @@ package com.chris.bookstore.enums;
 public enum OrderStatus {
     PENDING(0,"PENDING"),
     CONFIRMED(1, "CONFIRMED"),
-    SHIPPED(2,"SHIPPED"),
-    DELIVERED(3,"DELIVERED"),
+    DELIVERED(2,"DELIVERED"),
+    SHIPPED(3,"SHIPPED"),
     CANCELLED(4,"CANCELLED");
 
     private int code;

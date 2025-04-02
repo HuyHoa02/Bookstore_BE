@@ -3,7 +3,7 @@ package com.chris.bookstore.dto.response;
 import com.chris.bookstore.entity.Book;
 
 
-public class BookCreationResponse {
+public class BookResponse {
     private String title;
     private String author;
     private String description;
@@ -77,7 +77,7 @@ public class BookCreationResponse {
         this.shopId = shopId;
     }
 
-    public BookCreationResponse(Book book) {
+    public BookResponse(Book book) {
         this.title = book.getTitle();
         this.author = book.getAuthor();
         this.description = book.getDescription();

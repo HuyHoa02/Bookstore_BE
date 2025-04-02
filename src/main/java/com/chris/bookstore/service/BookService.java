@@ -1,8 +1,7 @@
 package com.chris.bookstore.service;
 
 import com.chris.bookstore.dto.request.BookRequest;
-import com.chris.bookstore.dto.response.ApiResponse;
-import com.chris.bookstore.dto.response.BookCreationResponse;
+import com.chris.bookstore.dto.response.BookResponse;
 import com.chris.bookstore.entity.Book;
 import com.chris.bookstore.entity.Category;
 import com.chris.bookstore.entity.Shop;
@@ -12,8 +11,6 @@ import com.chris.bookstore.exception.AppException;
 import com.chris.bookstore.repository.BookRepository;
 import com.chris.bookstore.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -39,15 +36,11 @@ public class BookService {
     }
     //-------------------------------- BOOK -------------------------------------------------
 
-    public BookCreationResponse handleCreateBook(BookRequest request, MultipartFile file) throws IOException {
+    public BookResponse handleCreateBook(BookRequest request, MultipartFile file) throws IOException {
         Category category = this.categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
         User currentUser = this.userService.getCurrentUser();
-        if (currentUser == null)
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
         Shop currentShop = currentUser.getShop();
-        if (currentShop == null)
-            throw new AppException(ErrorCode.SHOP_NOT_EXISTED);
 
         Book book = new Book();
         book.setTitle(request.getTitle());
@@ -61,26 +54,22 @@ public class BookService {
 
         bookRepository.save(book);
 
-        return new BookCreationResponse(book);
+        return new BookResponse(book);
     }
 
-    public List<BookCreationResponse> getAllBooks(){
-        return this.bookRepository.findAll().stream().map(BookCreationResponse::new).toList();
+    public List<BookResponse> getAllBooks(){
+        return this.bookRepository.findAll().stream().map(BookResponse::new).toList();
     }
 
-    public List<BookCreationResponse> getBookByTitle(String title){
-        return this.bookRepository.findByTitle(title).stream().map(BookCreationResponse::new).toList();
+    public List<BookResponse> getBookByTitle(String title){
+        return this.bookRepository.findByTitle(title).stream().map(BookResponse::new).toList();
     }
 
-    public BookCreationResponse handleUpdateBook(BookRequest request, MultipartFile file, Long bookId) throws IOException {
+    public BookResponse handleUpdateBook(BookRequest request, MultipartFile file, Long bookId) throws IOException {
         Category category = this.categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_EXISTED));
         User currentUser = this.userService.getCurrentUser();
-        if (currentUser == null)
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
         Shop currentShop = currentUser.getShop();
-        if (currentShop == null)
-            throw new AppException(ErrorCode.SHOP_NOT_EXISTED);
         Book existingBook = this.bookRepository.getBookByIdAndShopId(bookId, currentShop.getId());
         if(existingBook == null)
             throw new AppException(ErrorCode.BOOK_NOT_EXISTED);
@@ -95,16 +84,13 @@ public class BookService {
 
         bookRepository.save(existingBook);
 
-        return new BookCreationResponse(existingBook);
+        return new BookResponse(existingBook);
     }
 
     public void handleDeleteBook(Long bookId){
         User currentUser = this.userService.getCurrentUser();
-        if (currentUser == null)
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
         Shop currentShop = currentUser.getShop();
-        if (currentShop == null)
-            throw new AppException(ErrorCode.SHOP_NOT_EXISTED);
+
         Book existingBook = this.bookRepository.getBookByIdAndShopId(bookId, currentShop.getId());
         if(existingBook == null)
             throw new AppException(ErrorCode.BOOK_NOT_EXISTED);
