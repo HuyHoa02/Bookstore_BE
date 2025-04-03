@@ -2,7 +2,7 @@ package com.chris.bookstore.enums;
 
 public enum ErrorCode {
     CATEGORY_NOT_EXISTED(1000,"Category is not existed in database"),
-    CATEGORY_EXISTED(1001,"Category is not existed in database"),
+    CATEGORY_EXISTED(1001,"Category existed in database"),
     BOOK_NOT_EXISTED(1002,"Book is not existed in database"),
     CART_NOT_EXISTED(1003,"Cart is not existed in database"),
     ITEM_NOT_EXISTED(1004,"This item is not existed in database"),

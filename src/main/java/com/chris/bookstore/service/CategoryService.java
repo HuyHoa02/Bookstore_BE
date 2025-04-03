@@ -38,9 +38,7 @@ public class CategoryService {
     }
 
     public List<CategoryResponse> getAllCategories(){
-        return this.categoryRepository.findAll().stream().map(category -> {
-            return new CategoryResponse(category);
-        }).toList();
+        return this.categoryRepository.findAll().stream().map(CategoryResponse::new).toList();
     }
 
     public CategoryResponse handleUpdateCategory(CategoryRequest request, Long id){

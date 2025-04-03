@@ -12,6 +12,7 @@ import com.chris.bookstore.exception.AppException;
 import com.chris.bookstore.service.AuthenticationService;
 import com.chris.bookstore.service.MailService;
 import com.chris.bookstore.service.UserService;
+import com.chris.bookstore.util.Helper;
 import com.chris.bookstore.util.SecurityUtil;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -27,212 +28,145 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
+
     private final AuthenticationService authenticationService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final UserService userService;
     private final SecurityUtil securityUtil;
     private final MailService mailService;
+    private final Helper helper;
 
     @Value("${jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenValidity;
-
 
     public AuthenticationController(AuthenticationService authenticationService,
                                     AuthenticationManagerBuilder authenticationManagerBuilder,
                                     SecurityUtil securityUtil,
                                     UserService userService,
-                                    MailService mailService) {
+                                    MailService mailService,
+                                    Helper helper) {
         this.authenticationService = authenticationService;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
         this.mailService = mailService;
+        this.helper = helper;
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> login(@Valid @RequestBody AuthenticationRequest request) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
-
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
-        //Convert to Response class
-        AuthenticationResponse authenticationResponse = new AuthenticationResponse();
-
+        Authentication authentication = authenticateUser(request.getUsername(), request.getPassword());
         User user = userService.getUserByUsername(request.getUsername());
-        AuthenticationResponse.UserLogin userLogin = null;
-        if (user != null) {
-            userLogin = new AuthenticationResponse.UserLogin(
-                    user.getId(), user.getEmail(), user.getFullName()
-            );
 
-            authenticationResponse.setUser(userLogin);
-        }
-
-
-        // Create Token
-        String accessToken = securityUtil.createToken(user.getUsername(), userLogin);
-        String refreshToken = securityUtil.createRefreshToken(user.getUsername(), userLogin);
-
-
-        authenticationResponse.setAccessToken(accessToken);
-        authenticationResponse.setRefreshToken(refreshToken);
-
+        AuthenticationResponse authenticationResponse = generateAuthResponse(user);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        userService.updateUserToken(refreshToken, request.getUsername());
+        userService.updateUserToken(authenticationResponse.getRefreshToken(), request.getUsername());
 
-        //Set cookies
-        ResponseCookie resCookie = ResponseCookie
-                .from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(refreshTokenValidity)
-                .build();
+        ResponseCookie resCookie = createRefreshTokenCookie(authenticationResponse.getRefreshToken());
 
-        ApiResponse<AuthenticationResponse> res = new ApiResponse<AuthenticationResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Login successful");
-        res.setResult(authenticationResponse);
-
-
-        return ResponseEntity
-                .ok()
+        return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, resCookie.toString())
-                .body(res);
+                .body(helper.buildResponse(HttpStatus.OK, "Login successful", authenticationResponse));
     }
 
     @PostMapping("/sign-up")
     public ApiResponse<Void> signup(@Valid @RequestBody RegisterRequest request) throws MessagingException {
-        this.authenticationService.register(request, Role.USER);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Signing up succeed");
-        return res;
+        authenticationService.register(request, Role.USER);
+        return helper.buildResponse(HttpStatus.OK, "Signing up succeeded", null);
     }
-
 
     @GetMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(
-            @CookieValue(name = "refresh_token", defaultValue = "invalid_token_value") String refresh_token
+            @CookieValue(name = "refresh_token", defaultValue = "invalid_token_value") String refreshToken) {
 
-    ){
-        if (refresh_token.equals("invalid_token_value"))
+        if ("invalid_token_value".equals(refreshToken))
             throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
 
-        Jwt decodedToken = this.securityUtil.checkTokenValidation(refresh_token);
+        Jwt decodedToken = securityUtil.checkTokenValidation(refreshToken);
         String username = decodedToken.getSubject();
 
-        // Get current user by refresh token in cookie
-        User currentUser = this.userService.getUserByRefreshTokenAndUsername(refresh_token,username);
+        User currentUser = userService.getUserByRefreshTokenAndUsername(refreshToken, username);
 
-        //Convert to Response class
-        AuthenticationResponse authenticationResponse = new AuthenticationResponse();
+        AuthenticationResponse authenticationResponse = generateAuthResponse(currentUser);
+        userService.updateUserToken(authenticationResponse.getRefreshToken(), currentUser.getUsername());
 
-        AuthenticationResponse.UserLogin userLogin = null;
-        if (currentUser != null) {
-            userLogin = new AuthenticationResponse.UserLogin(
-                    currentUser.getId(), currentUser.getEmail(), currentUser.getFullName()
-            );
+        ResponseCookie resCookie = createRefreshTokenCookie(authenticationResponse.getRefreshToken());
 
-            authenticationResponse.setUser(userLogin);
-        }
-
-
-        // Create Token
-        String accessToken = securityUtil.createToken(currentUser.getUsername(), userLogin);
-        String refreshToken = securityUtil.createRefreshToken(currentUser.getUsername(), userLogin);
-
-
-        authenticationResponse.setAccessToken(accessToken);
-        authenticationResponse.setRefreshToken(refreshToken);
-
-        userService.updateUserToken(refreshToken, currentUser.getUsername());
-
-        //Set cookies
-        ResponseCookie resCookie = ResponseCookie
-                .from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(refreshTokenValidity)
-                .build();
-
-        ApiResponse<AuthenticationResponse> res = new ApiResponse<AuthenticationResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Login successful");
-        res.setResult(authenticationResponse);
-
-
-        return ResponseEntity
-                .ok()
+        return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, resCookie.toString())
-                .body(res);
+                .body(helper.buildResponse(HttpStatus.OK, "Token refreshed successfully", authenticationResponse));
     }
 
     @GetMapping("/account")
-    public ApiResponse<AuthenticationResponse.UserLogin> getAccount()
-    {
+    public ApiResponse<AuthenticationResponse.UserLogin> getAccount() {
         User currentUser = userService.getCurrentUser();
-
         AuthenticationResponse.UserLogin userLogin = new AuthenticationResponse.UserLogin();
-        if(currentUser != null){
+
+        if (currentUser != null) {
             userLogin.setId(currentUser.getId());
             userLogin.setEmail(currentUser.getEmail());
             userLogin.setName(currentUser.getFullName());
         }
 
-        ApiResponse<AuthenticationResponse.UserLogin> res = new ApiResponse<AuthenticationResponse.UserLogin>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Get current succeed");
-        res.setResult(userLogin);
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK, "Fetched current user successfully", userLogin);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @CookieValue(value = "refresh_token", defaultValue = "invalid_token_value") String refresh_token
-    )
-    {
-        if (refresh_token.equals("invalid_token_value"))
+            @CookieValue(value = "refresh_token", defaultValue = "invalid_token_value") String refreshToken) {
+
+        if ("invalid_token_value".equals(refreshToken))
             throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
 
-        Jwt decodedToken = this.securityUtil.checkTokenValidation(refresh_token);
+        Jwt decodedToken = securityUtil.checkTokenValidation(refreshToken);
         String username = decodedToken.getSubject();
 
-        // Get current user by refresh token in cookie
-        User currentUser = this.userService.getUserByRefreshTokenAndUsername(refresh_token,username);
+        userService.updateUserToken(null, username);
 
-        this.userService.updateUserToken(null,username);
-
-        ResponseCookie resCookie = ResponseCookie
-                .from("refresh_token", null)
+        ResponseCookie resCookie = ResponseCookie.from("refresh_token", null)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
                 .maxAge(0)
                 .build();
 
-        return ResponseEntity
-                .ok()
+        return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, resCookie.toString())
-                .body(null);
+                .body(helper.buildResponse(HttpStatus.OK, "Logout successful", null));
     }
 
     @PostMapping("/verify-email")
-    ApiResponse<String> verifyEmail(@RequestBody EmailVerifyRequest request){
-        this.mailService.verifyEmail(request);
+    public ApiResponse<String> verifyEmail(@RequestBody EmailVerifyRequest request) {
+        mailService.verifyEmail(request);
+        return helper.buildResponse(HttpStatus.OK, "Email verification successful", null);
+    }
 
-        ApiResponse<String> res = new ApiResponse<String>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Verifying email succeed");
+    /*** Helper Methods ***/
 
-        return res;
+    private Authentication authenticateUser(String username, String password) {
+        return authenticationManagerBuilder.getObject().authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+    }
+
+    private AuthenticationResponse generateAuthResponse(User user) {
+        AuthenticationResponse.UserLogin userLogin = new AuthenticationResponse.UserLogin(
+                user.getId(), user.getEmail(), user.getFullName());
+
+        return new AuthenticationResponse(
+                securityUtil.createToken(user.getUsername(), userLogin, false),
+                securityUtil.createToken(user.getUsername(), userLogin, true),
+                userLogin);
+    }
+
+    private ResponseCookie createRefreshTokenCookie(String refreshToken) {
+        return ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(refreshTokenValidity)
+                .build();
     }
 }

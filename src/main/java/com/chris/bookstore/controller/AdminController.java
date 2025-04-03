@@ -7,9 +7,9 @@ import com.chris.bookstore.enums.OrderStatus;
 import com.chris.bookstore.service.CategoryService;
 import com.chris.bookstore.service.OrderService;
 import com.chris.bookstore.service.ShopService;
+import com.chris.bookstore.util.Helper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,84 +17,48 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
     private final CategoryService categoryService;
     private final OrderService orderService;
-    private final ShopService shopService;
+    private final Helper helper;
 
     public AdminController(
             CategoryService categoryService,
             OrderService orderService,
-            ShopService shopService
+            Helper helper
     ){
         this.categoryService = categoryService;
         this.orderService = orderService;
-        this.shopService = shopService;
+        this.helper = helper;
     }
-//-------------------------------------CATEGORY---------------------------------------------
 
-    @PostMapping("/create-category")
+    /**  CATEGORIES   **/
+    @PostMapping("/categories/create")
     public ApiResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request){
-        CategoryResponse creationResponse = this.categoryService.handleCreateCategory(request);
-
-        ApiResponse<CategoryResponse> res = new ApiResponse<CategoryResponse>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setResult(creationResponse);
-        res.setMessage("Creating book succeed!");
-
-        return res;
+        return helper.buildResponse(HttpStatus.CREATED,"Creating category succeed",this.categoryService.handleCreateCategory(request));
     }
 
-    @PutMapping("/update-category/{id}")
+    @PutMapping("/categories/update/{id}")
     public ApiResponse<CategoryResponse> updateCategory(@Valid @RequestBody CategoryRequest request,
                                                         @PathVariable Long id){
-        CategoryResponse creationResponse = this.categoryService.handleUpdateCategory(request, id);
-
-        ApiResponse<CategoryResponse> res = new ApiResponse<CategoryResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(creationResponse);
-        res.setMessage("Updating category succeed!");
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK,"Updating category succeed",this.categoryService.handleUpdateCategory(request, id));
     }
 
-    @DeleteMapping("/delete-category/{id}")
-    public ApiResponse<CategoryResponse> deleteCategory(@Valid @PathVariable Long id){
+    @DeleteMapping("/categories/delete/{id}")
+    public ApiResponse<Void> deleteCategory(@Valid @PathVariable Long id){
         this.categoryService.handleDeleteCategory(id);
-
-        ApiResponse<CategoryResponse> res = new ApiResponse<CategoryResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Deleting category succeed!");
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK,"Deleting category succeed", null);
     }
 
-//----------------------------------ORDER-------------------------------------------
-
-    @PutMapping("/update-order-shipped/{orderId}")
+    /**  ORDERS   **/
+    @PutMapping("/orders/update/{orderId}/shipped")
     public ApiResponse<Void> updateOrderStatusShipped(@PathVariable(value = "orderId") Long orderId)
     {
-        this.orderService.updateStatus(orderId, OrderStatus.SHIPPED);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status shipped succeed!");
-
-        return res;
-        
+        this.orderService.handleUpdateStatus(orderId, OrderStatus.SHIPPED);
+        return helper.buildResponse(HttpStatus.OK,"Updating order's status shipped succeed!", null);
     }
-    @PutMapping("/update-order-cancelled/{orderId}")
+
+    @PutMapping("orders/update/{orderId}/cancelled")
     public ApiResponse<Void> updateOrderStatusCancelled(@PathVariable(value = "orderId") Long orderId)
     {
-        this.orderService.updateStatus(orderId, OrderStatus.CANCELLED);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status cancelled succeed!");
-
-        return res;
+        this.orderService.handleUpdateStatus(orderId, OrderStatus.CANCELLED);
+        return helper.buildResponse(HttpStatus.OK,"Updating order's status cancelled succeed!", null);
     }
-
-    //--------------------------------SHOP-----------------------------------------
-
-
-
-
 }

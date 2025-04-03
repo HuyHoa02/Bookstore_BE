@@ -58,7 +58,6 @@ public class ShopService {
         userRepository.saveAndFlush(currentUser);
 
         // Update user privileges
-        currentUser.getPrivileges().clear();
         currentUser.getPrivileges().addAll(Set.of(
                 Privilege.CREATE_BOOKS,
                 Privilege.EDIT_BOOKS,

@@ -55,9 +55,11 @@ public class SecurityUtil {
     }
 
     public String createToken(String username,
-                              AuthenticationResponse.UserLogin dto){
+                              AuthenticationResponse.UserLogin dto, boolean isRefresh){
         Instant now = Instant.now();
-        Instant validity = now.plus(Long.parseLong(this.jwtKeyExpriration), ChronoUnit.SECONDS);
+        Instant validity;
+        if(!isRefresh)  validity = now.plus(Long.parseLong(this.jwtKeyExpriration), ChronoUnit.SECONDS);
+        else validity = now.plus(Long.parseLong(this.refreshTokenValidity), ChronoUnit.SECONDS);
 
         User currentUser = this.userService.getUserByUsername(username);
 
@@ -74,28 +76,6 @@ public class SecurityUtil {
                 .claim("user", dto)
                 .claim("role",role)
                 .claim("privileges",privileges)
-                .build();
-
-        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
-
-        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
-    }
-
-    public String createRefreshToken(String username,
-                              AuthenticationResponse.UserLogin dto){
-        Instant now = Instant.now();
-        Instant validity = now.plus(Long.parseLong(this.refreshTokenValidity), ChronoUnit.SECONDS);
-
-        List<String> listAuthority = new ArrayList<String>();
-        listAuthority.add("ROLE_USER_CREATE");
-        listAuthority.add("ROLE_USER_UPDATE");
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuedAt(now)
-                .expiresAt(validity)
-                .subject(username)
-                .claim("user", dto)
-                .claim("permission",listAuthority)
                 .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();

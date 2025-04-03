@@ -4,6 +4,7 @@ import com.chris.bookstore.dto.response.ApiResponse;
 import com.chris.bookstore.enums.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -20,7 +21,7 @@ import java.util.Set;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<String>> hanleRuntimeException(RuntimeException ex){
+    public ResponseEntity<ApiResponse<String>> handleRuntimeException(RuntimeException ex){
         ApiResponse<String> apiResponse = new ApiResponse<String>();
 
         apiResponse.setStatusCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
@@ -45,18 +46,19 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+    public ResponseEntity<ApiResponse<String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        response.setMessage("Validation failed");
+
+        StringBuilder errorMessage = new StringBuilder();
         BindingResult result = ex.getBindingResult();
-        final List<FieldError> fieldErrors = ex.getFieldErrors();
+        for (FieldError error : result.getFieldErrors()) {
+            errorMessage.append(error.getField()).append(": ").append(error.getDefaultMessage()).append("; ");
+        }
 
-        ApiResponse<Object> res = new ApiResponse<Object>();
-        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        res.setError(ex.getBody().getDetail());
-
-        List<String> errors = fieldErrors.stream().map(f -> f.getDefaultMessage()).toList();
-        res.setMessage(errors.size() > 1 ? errors : errors.get(0));
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+        response.setResult(errorMessage.toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

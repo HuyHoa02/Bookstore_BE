@@ -28,7 +28,7 @@ public class ApplicationInitConfig {
 
     static final String ADMIN_USER_NAME = "admin";
 
-    static final String ADMIN_PASSWORD = "admin";
+    static final String ADMIN_PASSWORD = "12345678";
 
     static final String ADMIN_EMAIL = "admin";
 

@@ -1,22 +1,29 @@
 package com.chris.bookstore.dto.request;
 
-
-import com.chris.bookstore.entity.Address;
-import com.chris.bookstore.entity.Cart;
-import com.chris.bookstore.entity.Order;
-import com.chris.bookstore.enums.Role;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
+
+    @NotBlank(message = "Username cannot be empty")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
+
+    @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Email should be a valid email address")
     private String email;
+
+    @NotBlank(message = "Password cannot be empty")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
+
+    @NotBlank(message = "Full name cannot be empty")
+    @Size(max = 100, message = "Full name should not exceed 100 characters")
     private String fullName;
+
+    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be between 10 and 15 digits")
     private String phoneNumber;
 
     public String getUsername() {

@@ -4,6 +4,7 @@ import com.chris.bookstore.dto.request.*;
 import com.chris.bookstore.dto.response.*;
 import com.chris.bookstore.enums.OrderStatus;
 import com.chris.bookstore.service.*;
+import com.chris.bookstore.util.Helper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ public class UserController {
     private final BookService bookService;
     private final ShopRatingService shopRatingService;
     private final UserService userService;
+    private final Helper helper;
 
 
     public UserController(AddressService addressService,
@@ -31,7 +33,8 @@ public class UserController {
                           ShopService shopService,
                           BookService bookService,
                           ShopRatingService shopRatingService,
-                          UserService userService)
+                          UserService userService,
+                          Helper helper)
     {
         this.addressService = addressService;
         this.cartService = cartService;
@@ -40,262 +43,165 @@ public class UserController {
         this.bookService = bookService;
         this.shopRatingService = shopRatingService;
         this.userService = userService;
+        this.helper = helper;
     }
 
-    @GetMapping("/get-addresses")
+    @GetMapping("/addresses/all")
+    @PreAuthorize("hasAuthority('GET_ADDRESSES')")
     public ApiResponse<List<AddressResponse>> getAllAddresses()
     {
-        List<AddressResponse> list = this.addressService.getAllAddresses();
-
-        ApiResponse<List<AddressResponse>> res = new ApiResponse<List<AddressResponse>>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Getting all addresses succeed");
-        res.setResult(list);
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK,"Getting all addresses succeed",addressService.getAllAddresses());
     }
 
-    @PostMapping("/add-address")
+    @PostMapping("/addresses/add")
+    @PreAuthorize("hasAuthority('ADD_ADDRESSES')")
     public ApiResponse<Void> addAddress(@Valid @RequestBody AddressRequest request)
     {
-        this.addressService.addAddress(request);
+        addressService.addAddress(request);
+        return helper.buildResponse(HttpStatus.CREATED,"Adding addresses successful", null);
 
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setMessage("Adding addresses successful");
-
-        return res;
     }
 
-    @PutMapping("/update-address/{addressId}")
+    @PutMapping("/addresses/update/{addressId}")
+    @PreAuthorize("hasAuthority('UPDATE_ADDRESSES')")
     public ApiResponse<Void> updateAddress(@PathVariable(value = "addressId") Long addressId,
                                            @Valid @RequestBody AddressRequest request)
     {
-        this.addressService.updateAddress(addressId, request);
+        addressService.updateAddress(addressId, request);
+        return helper.buildResponse(HttpStatus.OK,"Updating all addresses succeed", null);
 
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating all addresses succeed");
-
-        return res;
     }
 
-    @DeleteMapping("/delete-address/{addressId}")
+    @DeleteMapping("/addresses/delete/{addressId}")
+    @PreAuthorize("hasAuthority('DELETE_ADDRESSES')")
     public ApiResponse<Void> deleteAddress(@PathVariable(value = "addressId") Long addressId)
     {
-        this.addressService.deleteAddress(addressId);
+        addressService.deleteAddress(addressId);
+        return helper.buildResponse(HttpStatus.OK,"Deleting addresses succeed", null);
 
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Deleting all addresses succeed");
-
-        return res;
     }
 
-
-
-    @GetMapping("/get-cart-items")
+    @GetMapping("/cart/items")
+    @PreAuthorize("hasAuthority('GET_ITEMS')")
     public ApiResponse<List<CartItemsResponse>> getCartItems()
     {
-        List<CartItemsResponse> items = this.cartService.getCartItems();
-
-        ApiResponse<List<CartItemsResponse>> res = new ApiResponse<List<CartItemsResponse>>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(items);
-        res.setMessage("Get items succeed!");
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK,"Get items succeed!", cartService.getCartItems());
     }
 
-    @PostMapping("/add-to-cart/{bookId}")
+    @PostMapping("/cart/add/{bookId}")
+    @PreAuthorize("hasAuthority('ADD_TO_CART')")
     public ApiResponse<Void> addToCart(@PathVariable(value = "bookId")Long bookId)
     {
-        this.cartService.addToCart(bookId);
+        cartService.addToCart(bookId);
+        return helper.buildResponse(HttpStatus.OK,"Adding item to cart succeed!", null);
 
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Adding item to cart succeed!");
-
-        return res;
     }
 
-    @DeleteMapping("/remove-from-cart/{bookId}")
+    @DeleteMapping("/cart/remove/{bookId}")
+    @PreAuthorize("hasAuthority('REMOVE_FROM_CART')")
     private ApiResponse<Void> removeFromCart(@PathVariable(value = "bookId")Long bookId){
-        this.cartService.removeFromCart(bookId);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Removing item to cart succeed!");
-
-        return res;
+        cartService.removeFromCart(bookId);
+        return helper.buildResponse(HttpStatus.OK,"Removing item to cart succeed!", null);
     }
 
-    @PostMapping("/place-an-order/{addressId}")
+    @PostMapping("/orders/place/{addressId}")
+    @PreAuthorize("hasAuthority('PLACE_ORDER')")
     public ApiResponse<Void> placeAnOrder(@PathVariable(value = "addressId") Long addressId)
     {
-        this.orderService.placeAnOrder(addressId);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Placing an order succeed!");
-
-        return res;
+        orderService.placeAnOrder(addressId);
+        return helper.buildResponse(HttpStatus.OK,"Placing an order succeed!", null);
     }
 
-    @PostMapping("/create-shop")
+    @PostMapping("/shop/create")
+    @PreAuthorize("hasAuthority('CREATE_SHOP')")
     public ApiResponse<ShopResponse> createShop(@Valid @RequestBody ShopRequest request)
     {
-        ShopResponse shopResponse = this.shopService.createShop(request);
-
-        ApiResponse<ShopResponse> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setMessage("Shop created successfully");
-        res.setResult(shopResponse);
-
-        return res;
+        return helper.buildResponse(HttpStatus.CREATED,"Shop created successfully", shopService.createShop(request));
     }
 
-    @PutMapping("/update-shop")
+    @PutMapping("/shop/update")
     @PreAuthorize("hasAuthority('EDIT_SHOP')")
     public ApiResponse<Void> updateShop(@Valid @RequestBody ShopRequest request)
     {
-        this.shopService.updateShop(request);
-
-        ApiResponse<Void> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Shop updated successfully");
-
-        return res;
+        shopService.updateShop(request);
+        return helper.buildResponse(HttpStatus.OK,"Shop updated successfully", null);
     }
 
-    @PutMapping("/toggle-shop-availability")
+    @PutMapping("/shop/toggle-availability")
     @PreAuthorize("hasAuthority('TOGGLE_SHOP_AVAILABILITY')")
     public ApiResponse<Void> updateShopAvailability()
     {
-        this.shopService.updateShopAvail();
-
-        ApiResponse<Void> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Shop updated successfully");
-
-        return res;
+        shopService.updateShopAvail();
+        return helper.buildResponse(HttpStatus.OK,"Shop updated successfully", null);
     }
 
-    @PostMapping("/create-book")
+    @PostMapping("/books/create")
     @PreAuthorize("hasAuthority('CREATE_BOOKS')")
     public ApiResponse<BookResponse> createBook(
             @Valid @RequestPart("book") BookRequest request,
             @RequestPart("image") MultipartFile file) throws IOException {
-        BookResponse bookResponse = this.bookService.handleCreateBook(request, file);
-
-        ApiResponse<BookResponse> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setResult(bookResponse);
-        res.setMessage("Creating book succeed!");
-
-        return res;
+        return helper.buildResponse(HttpStatus.CREATED,"Creating book succeed!", bookService.handleCreateBook(request, file));
     }
 
-    @PutMapping("/update-book/{id}")
+    @PutMapping("/books/update/{id}")
     @PreAuthorize("hasAuthority('EDIT_BOOKS')")
-    public ApiResponse<BookResponse> updateBook(@Valid @RequestBody BookRequest request,
-                                                @RequestParam(name = "image") MultipartFile file,
-                                                @PathVariable(value = "id") Long id) throws IOException {
-        BookResponse bookResponse = this.bookService.handleUpdateBook(request,file, id);
-
-        ApiResponse<BookResponse> res = new ApiResponse<BookResponse>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(bookResponse);
-        res.setMessage("Updating book succeed!");
-
-        return res;
+    public ApiResponse<BookResponse> updateBook(@Valid @RequestPart BookRequest request,
+                                                @RequestPart(name = "image") MultipartFile file,
+                                                @PathVariable(value = "id") Long id) throws IOException
+    {
+        return helper.buildResponse(HttpStatus.OK,"Updating book succeed!", bookService.handleUpdateBook(request,file, id));
     }
 
 
-    @DeleteMapping("/delete-book/{id}")
+    @DeleteMapping("/books/delete/{id}")
     @PreAuthorize("hasAuthority('DELETE_BOOKS')")
-    public ApiResponse<Void> deleteBook(@PathVariable(value = "id") Long id){
-        this.bookService.handleDeleteBook(id);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Deleting book succeed!");
-
-        return res;
+    public ApiResponse<Void> deleteBook(@PathVariable(value = "id") Long id)
+    {
+        bookService.handleDeleteBook(id);
+        return helper.buildResponse(HttpStatus.OK,"Deleting book succeed!", null);
     }
 
-    @GetMapping("/get-all-orders")
+    @GetMapping("orders/all")
     @PreAuthorize("hasAuthority('READ_ORDERS')")
     public ApiResponse<List<OrderResponse>> getAllOrders()
     {
-        List<OrderResponse> responseList = this.orderService.getAllOrders();
-
-        ApiResponse<List<OrderResponse>> res = new ApiResponse<List<OrderResponse>>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Get all orders succeed!");
-        res.setResult(responseList);
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK,"Get all orders succeed!", orderService.getAllOrders());
     }
 
-    @PutMapping("/update-order-confirmed/{orderId}")
+    @PutMapping("orders/update/{orderId}/confirmed")
     @PreAuthorize("hasAuthority('UPDATE_ORDER_STATUS_CONFIRMED')")
     public ApiResponse<Void> updateOrderStatusConfirmed(@PathVariable(value = "orderId") Long orderId)
     {
-        this.orderService.updateStatus(orderId, OrderStatus.CONFIRMED);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status confirmed succeed!");
-
-        return res;
+        orderService.handleUpdateStatus(orderId, OrderStatus.CONFIRMED);
+        return  helper.buildResponse(HttpStatus.OK,"Updating order's status confirmed succeed!", null);
     }
-    @PutMapping("/update-order-delivered/{orderId}")
+    @PutMapping("/orders/update/{orderId}/delivered")
     @PreAuthorize("hasAuthority('UPDATE_ORDER_STATUS_DELIVERED')")
     public ApiResponse<Void> updateOrderStatusShipped(@PathVariable(value = "orderId") Long orderId)
     {
-        this.orderService.updateStatus(orderId, OrderStatus.SHIPPED);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status delivered succeed!");
-
-        return res;
+        orderService.handleUpdateStatus(orderId, OrderStatus.SHIPPED);
+        return  helper.buildResponse(HttpStatus.OK,"Updating order's status delivered succeed!", null);
     }
-    @PutMapping("/update-order-cancelled/{orderId}")
+    @PutMapping("orders/update/{orderId}/cancelled")
     @PreAuthorize("hasAuthority('UPDATE_ORDER_STATUS_CANCELLED')")
     public ApiResponse<Void> updateOrderStatusCancelled(@PathVariable(value = "orderId") Long orderId)
     {
-        this.orderService.updateStatus(orderId, OrderStatus.CANCELLED);
-
-        ApiResponse<Void> res = new ApiResponse<Void>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setMessage("Updating order's status delivered succeed!");
-
-        return res;
+        orderService.handleUpdateStatus(orderId, OrderStatus.CANCELLED);
+        return  helper.buildResponse(HttpStatus.OK,"Updating order's status cancelled succeed!", null);
     }
 
     @PostMapping("/rate-shop/{shopId}")
+    @PreAuthorize("hasAuthority('RATE_SHOP')")
     public ApiResponse<Void> rateShop(@PathVariable Long shopId,
                                       @Valid @RequestBody RatingRequest request) {
         shopRatingService.rateShop(shopId, request.getRating(), request.getReview());
-
-        ApiResponse<Void> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setMessage("Rated succeed");
-
-        return res;
+        return  helper.buildResponse(HttpStatus.CREATED,"Rated succeed", null);
     }
 
-    @PostMapping("/{shopId}/follow")
+    @PostMapping("/follow-shop/{shopId}")
+    @PreAuthorize("hasAuthority('FOLLOW_SHOP')")
     public ApiResponse<Void> followShop(@PathVariable Long shopId) {
-        this.userService.followShop(shopId);
-
-
-        ApiResponse<Void> res = new ApiResponse<>();
-        res.setStatusCode(HttpStatus.CREATED.value());
-        res.setMessage("Rated succeed");
-
-        return res;
+        userService.followShop(shopId);
+        return  helper.buildResponse(HttpStatus.CREATED,"Rated succeed", null);
     }
 }

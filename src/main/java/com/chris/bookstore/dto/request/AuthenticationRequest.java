@@ -1,10 +1,17 @@
 package com.chris.bookstore.dto.request;
 
 
-public class AuthenticationRequest {
-    private String username;
-    private String password;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
+public class AuthenticationRequest {
+    @NotBlank(message = "Username cannot be empty")
+    @Size(max = 30, message = "Username should not exceed 30 characters")
+    private String username;
+
+    @NotBlank(message = "Password cannot be empty")
+    @Size(min = 6, message = "Password should have at least 6 characters")
+    private String password;
     public String getUsername() {
         return username;
     }

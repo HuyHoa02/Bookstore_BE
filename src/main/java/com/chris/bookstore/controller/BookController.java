@@ -3,6 +3,7 @@ package com.chris.bookstore.controller;
 import com.chris.bookstore.dto.response.ApiResponse;
 import com.chris.bookstore.dto.response.BookResponse;
 import com.chris.bookstore.service.BookService;
+import com.chris.bookstore.util.Helper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,37 +12,26 @@ import java.util.List;
 @RestController
 @RequestMapping("/books")
 public class BookController {
-
     private final BookService bookService;
+    private final Helper helper;
 
     public BookController(
-            BookService bookService
+            BookService bookService,
+            Helper helper
     ){
         this.bookService = bookService;
+        this.helper = helper;
     }
 
-    @GetMapping("get-all")
+    @GetMapping("/all")
     public ApiResponse<List<BookResponse>> getAllBooks(){
-        List<BookResponse> books = this.bookService.getAllBooks();
-
-        ApiResponse<List<BookResponse>> res = new ApiResponse<List<BookResponse>>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(books);
-        res.setMessage("Get all books succeed!");
-
-        return res;
+        return helper.buildResponse(HttpStatus.OK,"Get all books succeed!",this.bookService.getAllBooks());
     }
 
-    @GetMapping("/get-by-title/{title}")
+    @GetMapping("/by-title/{title}")
     public ApiResponse<List<BookResponse>> getBook(@PathVariable(value = "title") String title){
-        List<BookResponse> books = this.bookService.getBookByTitle(title);
+        return helper.buildResponse(HttpStatus.OK,"Get books succeed!",this.bookService.getBookByTitle(title));
 
-        ApiResponse<List<BookResponse>> res = new ApiResponse<List<BookResponse>>();
-        res.setStatusCode(HttpStatus.OK.value());
-        res.setResult(books);
-        res.setMessage("Get book succeed!");
-
-        return res;
     }
 
 }

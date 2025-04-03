@@ -109,16 +109,16 @@ public class OrderService {
         orderRepository.saveAll(orders);
     }
 
-    public void updateStatus(Long order, OrderStatus newStatus) {
-        Order existingOrder = this.orderRepository.findById(order)
+    public void handleUpdateStatus(Long orderId, OrderStatus newStatus) {
+        Order currentOrder = this.orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
         User currentUser = this.userService.getCurrentUser();
-        boolean isNotCurrentShopOrder = this.orderRepository.getOrderByIdAndShopId(order, currentUser.getShop().getId()) == null;
+        boolean isNotCurrentShopOrder = this.orderRepository.getOrderByIdAndShopId(orderId, currentUser.getShop().getId()) == null;
         if (isNotCurrentShopOrder && currentUser.getRole() != Role.ADMIN)
             throw new AppException(ErrorCode.ORDER_NOT_EXISTED);
 
-        OrderStatus currentStatus = existingOrder.getStatus();
+        OrderStatus currentStatus = currentOrder.getStatus();
 
         switch (newStatus) {
             case CONFIRMED:
@@ -141,8 +141,8 @@ public class OrderService {
                 throw new AppException(ErrorCode.STATUS_OPTION_INVALID);
         }
 
-        existingOrder.setStatus(newStatus);
-        orderRepository.save(existingOrder);
+        currentOrder.setStatus(newStatus);
+        orderRepository.save(currentOrder);
     }
 
 }

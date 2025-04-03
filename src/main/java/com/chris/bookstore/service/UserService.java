@@ -24,7 +24,10 @@ public class UserService {
     }
 
     public User getUserByUsername(String username){
-        return this.userRepository.findByUsername(username);
+        User user = this.userRepository.findByUsername(username);
+        if(user ==null)
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        return user;
     }
 
     public void updateUserToken(String token, String username)

@@ -1,10 +1,24 @@
 package com.chris.bookstore.dto.request;
 
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class AddressRequest {
+    @NotBlank(message = "Street cannot be empty")
+    @Size(max = 100, message = "Street name should not exceed 100 characters")
     private String street;
+
+    @NotBlank(message = "Ward cannot be empty")
+    @Size(max = 50, message = "Ward name should not exceed 50 characters")
     private String ward;
+
+    @NotBlank(message = "District cannot be empty")
+    @Size(max = 50, message = "District name should not exceed 50 characters")
     private String district;
+
+    @NotBlank(message = "Province cannot be empty")
+    @Size(max = 50, message = "Province name should not exceed 50 characters")
     private String province;
 
     public String getStreet() {

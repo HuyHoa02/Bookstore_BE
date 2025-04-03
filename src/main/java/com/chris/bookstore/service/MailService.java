@@ -5,6 +5,7 @@ import com.chris.bookstore.dto.request.EmailVerifyRequest;
 import com.chris.bookstore.dto.response.AuthenticationResponse;
 import com.chris.bookstore.entity.User;
 import com.chris.bookstore.enums.ErrorCode;
+import com.chris.bookstore.enums.Privilege;
 import com.chris.bookstore.exception.AppException;
 import com.chris.bookstore.repository.UserRepository;
 import jakarta.mail.MessagingException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class MailService {
@@ -87,17 +89,27 @@ public class MailService {
 
     public void verifyEmail(EmailVerifyRequest request) {
         User userChecker = userRepository.findByVerificationCode(request.getVerifyCode());
-
         if(userChecker == null)
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
-
-        if (!Objects.equals(userChecker.getVerificationCode(), request.getVerifyCode())) {
             throw new AppException(ErrorCode.VERIFY_EMAIL_FAILED);
-        }
 
         userChecker.setVerified(true);
         userChecker.setVerificationExpiry(null);
         userChecker.setVerificationCode(null);
+
+        userChecker.getPrivileges().clear();
+        userChecker.getPrivileges().addAll(Set.of(
+                Privilege.GET_ITEMS,
+                Privilege.ADD_TO_CART,
+                Privilege.REMOVE_FROM_CART,
+                Privilege.PLACE_ORDER,
+                Privilege.CREATE_SHOP,
+                Privilege.ADD_ADDRESSES,
+                Privilege.UPDATE_ADDRESSES,
+                Privilege.DELETE_ADDRESSES,
+                Privilege.RATE_SHOP,
+                Privilege.FOLLOW_SHOP,
+                Privilege.GET_ADDRESSES
+        ));
 
         userRepository.save(userChecker);
     }

@@ -9,6 +9,8 @@ public class AuthenticationResponse {
     @JsonProperty("refresh_token")
     private String refreshToken;
 
+    private UserLogin user;
+
     public String getAccessToken() {
         return accessToken;
     }
@@ -25,7 +27,11 @@ public class AuthenticationResponse {
         this.refreshToken = refreshToken;
     }
 
-    private UserLogin user;
+    public AuthenticationResponse(String accessToken, String refreshToken, UserLogin user) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.user = user;
+    }
 
     public UserLogin getUser() {
         return user;

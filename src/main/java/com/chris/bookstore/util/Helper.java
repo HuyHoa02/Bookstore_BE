@@ -1,5 +1,7 @@
 package com.chris.bookstore.util;
 
+import com.chris.bookstore.dto.response.ApiResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -18,5 +20,13 @@ public class Helper {
             optCode += otp[i];
         }
         return optCode;
+    }
+
+    public <T> ApiResponse<T> buildResponse(HttpStatus status, String message, T result) {
+        ApiResponse<T> response = new ApiResponse<>();
+        response.setStatusCode(status.value());
+        response.setMessage(message);
+        response.setResult(result);
+        return response;
     }
 }

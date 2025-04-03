@@ -43,7 +43,7 @@ public class AuthenticationService {
 
     public void register(RegisterRequest request, Role role) throws MessagingException {
         User existingUserEmail = this.userRepository.findByEmail(request.getEmail());
-        User existingUserUsername = this.userRepository.findByUsername(request.getEmail());
+        User existingUserUsername = this.userRepository.findByUsername(request.getUsername());
 
         if(existingUserUsername != null || existingUserEmail != null)
             throw new AppException(ErrorCode.USER_EXISTED);
@@ -54,27 +54,19 @@ public class AuthenticationService {
         newUser.setEmail(request.getEmail());
         newUser.setUsername(request.getUsername());
         newUser.setFullName(request.getFullName());
-
-
         newUser.setPassword(encodedPassword);
-
         newUser.setPhoneNumber(request.getPhoneNumber());
         newUser.setRole(role);
-
-        Cart cart = new Cart();
-        newUser.setCart(cart);
+        newUser.setCart(new Cart());
 
         String verifyCode;
-
         do {
             verifyCode = helper.generateTempPwd(6);
         } while(this.userRepository.findByVerificationCode(verifyCode) != null);
 
-
         newUser.setVerificationCode(verifyCode);
         newUser.setVerificationExpiry(LocalDateTime.now().plusHours(24));
         newUser.setVerified(false);
-
 
         Map<String,Object> props = new HashMap<>();
         props.put("fullName",request.getFullName());
