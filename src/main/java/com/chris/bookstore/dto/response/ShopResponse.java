@@ -11,6 +11,7 @@ public class ShopResponse {
     private String shopAddress;
     private Long shopFollowers;
     private double shopRating;
+    private String imgaeUrl;
     private Long shopOwnerId;
 
     public String getShopName() {
@@ -43,6 +44,14 @@ public class ShopResponse {
 
     public void setShopRating(double shopRating) {
         this.shopRating = shopRating;
+    }
+
+    public String getImgaeUrl() {
+        return imgaeUrl;
+    }
+
+    public void setImgaeUrl(String imgaeUrl) {
+        this.imgaeUrl = imgaeUrl;
     }
 
     public Long getShopOwnerId() {

@@ -20,6 +20,8 @@ public class Shop {
     @Column(nullable = false)
     private String shopName;
 
+    private String imageUrl;
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User owner; // The user who owns this shop (bidirectional)
@@ -64,6 +66,14 @@ public class Shop {
 
     public String getShopName() {
         return shopName;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public void setShopName(String shopName) {

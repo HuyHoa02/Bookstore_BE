@@ -108,7 +108,8 @@ public class MailService {
                 Privilege.DELETE_ADDRESSES,
                 Privilege.RATE_SHOP,
                 Privilege.FOLLOW_SHOP,
-                Privilege.GET_ADDRESSES
+                Privilege.GET_ADDRESSES,
+                Privilege.RATE_BOOK
         ));
 
         userRepository.save(userChecker);

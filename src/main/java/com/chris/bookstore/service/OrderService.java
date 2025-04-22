@@ -1,5 +1,6 @@
 package com.chris.bookstore.service;
 
+import com.chris.bookstore.dto.request.PlaceOrderRequest;
 import com.chris.bookstore.dto.response.OrderResponse;
 import com.chris.bookstore.entity.*;
 import com.chris.bookstore.enums.ErrorCode;
@@ -46,68 +47,72 @@ public class OrderService {
         return orders.stream().map(OrderResponse::new).toList();
     }
 
-    @Transactional
-    public void placeAnOrder(Long addressId) {
+    public List<OrderResponse> getOrdersByStatus(OrderStatus status) {
         User currentUser = this.userService.getCurrentUser();
-        Address existingAddress = this.addressRepository.findByUserIdAndId(currentUser.getId(), addressId);
-        if (existingAddress == null)
-            throw new AppException(ErrorCode.ADDRESS_NOT_EXISTED);
+        Shop currentShop = currentUser.getShop();
 
-        Cart currentUserCart = currentUser.getCart();
-        if (currentUserCart == null || currentUserCart.getCartItems().isEmpty())
-            throw new AppException(ErrorCode.CART_EMPTY);
+        List<Order> orders = this.orderRepository.getOrdersByShopId(currentShop.getId());
 
-        // Group cart items by shop
-        Map<Shop, List<CartItems>> itemsByShop = currentUserCart.getCartItems().stream()
-                .collect(Collectors.groupingBy(
-                        cartItem -> cartItem.getBook().getShop()
-                ));
+        return orders.stream().map(OrderResponse::new).toList();
+    }
+    @Transactional
+    public void placeOrder(PlaceOrderRequest request) {
+        User currentUser = userService.getCurrentUser();
+        Cart cart = currentUser.getCart();
 
-        // Create separate orders for each shop
-        List<Order> orders = new ArrayList<>();
+        List<CartItems> selectedItems = cart.getCartItems().stream()
+                .filter(item -> request.getCartItemIds().contains(item.getId()))
+                .toList();
 
-        for (Map.Entry<Shop, List<CartItems>> entry : itemsByShop.entrySet()) {
-            Shop shop = entry.getKey();
-            List<CartItems> shopItems = entry.getValue();
-
-            Order newOrder = new Order();
-            newOrder.setUser(currentUser);
-            newOrder.setStatus(OrderStatus.PENDING);
-            newOrder.setShippingAddress(existingAddress.toString());
-            newOrder.setShop(shop);
-
-            // Add order details for this shop's items
-            double shopTotal = 0.0;
-            for (CartItems item : shopItems) {
-
-                if (item.getBook().getStock() < item.getQuantity()) {
-                    throw new AppException(ErrorCode.INSUFFICIENT_STOCK);
-                }
-
-                Book book = item.getBook();
-                book.setStock(book.getStock() - item.getQuantity());
-
-                OrderDetails orderDetails = new OrderDetails();
-                orderDetails.setOrder(newOrder);
-                orderDetails.setBook(item.getBook());
-                orderDetails.setQuantity(item.getQuantity());
-                orderDetails.setUnitPrice(item.getUnitPrice());
-
-                shopTotal += item.getUnitPrice() * item.getQuantity();
-                newOrder.getOrderDetails().add(orderDetails);
-            }
-
-            newOrder.setTotalAmount(shopTotal);
-            orders.add(newOrder);
+        if (selectedItems.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_CART_SELECTION);
         }
 
-        // Clear the cart and save changes
-        currentUserCart.clearCart(cartItemsRepository);
-        cartRepository.save(currentUserCart);
+        // Group by shop
+        Map<Shop, List<CartItems>> groupedByShop = selectedItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getBook().getShop()));
 
-        // Save all orders
-        orderRepository.saveAll(orders);
+        for (Map.Entry<Shop, List<CartItems>> entry : groupedByShop.entrySet()) {
+            Shop shop = entry.getKey();
+            List<CartItems> items = entry.getValue();
+
+            Order order = new Order();
+            order.setUser(currentUser);
+            order.setShop(shop);
+            order.setShippingAddress(request.getShippingAddress());
+            order.setNote(request.getNote());
+            order.setStatus(OrderStatus.PENDING);
+
+            double total = items.stream()
+                    .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+                    .sum();
+            order.setTotalAmount(total);
+
+            List<OrderDetails> details = new ArrayList<>();
+            for (CartItems cartItem : items) {
+                OrderDetails detail = new OrderDetails();
+                detail.setOrder(order);
+                detail.setBook(cartItem.getBook());
+                detail.setQuantity(cartItem.getQuantity());
+                detail.setUnitPrice(cartItem.getUnitPrice());
+                details.add(detail);
+            }
+
+            order.setOrderDetails(details);
+            orderRepository.save(order);
+        }
+
+        cartItemsRepository.deleteAll(selectedItems);
+        cart.getCartItems().removeIf(item -> request.getCartItemIds().contains(item.getId()));
+
+        cart.setTotalAmount(
+                cart.getCartItems().stream()
+                        .mapToDouble(i -> i.getUnitPrice() * i.getQuantity())
+                        .sum()
+        );
+        cartRepository.save(cart);
     }
+
 
     public void handleUpdateStatus(Long orderId, OrderStatus newStatus) {
         Order currentOrder = this.orderRepository.findById(orderId)

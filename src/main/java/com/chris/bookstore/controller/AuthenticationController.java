@@ -21,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -58,26 +59,30 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> login(@Valid @RequestBody AuthenticationRequest request) {
-        Authentication authentication = authenticateUser(request.getUsername(), request.getPassword());
-        User user = userService.getUserByUsername(request.getUsername());
+        try {
+            Authentication authentication = authenticateUser(request.getUsername(), request.getPassword());
+            User user = userService.getUserByUsername(request.getUsername());
 
-        AuthenticationResponse authenticationResponse = generateAuthResponse(user);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        userService.updateUserToken(authenticationResponse.getRefreshToken(), request.getUsername());
+            AuthenticationResponse authenticationResponse = generateAuthResponse(user);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            userService.updateUserToken(authenticationResponse.getRefreshToken(), request.getUsername());
 
-        ResponseCookie resCookie = createRefreshTokenCookie(authenticationResponse.getRefreshToken());
+            ResponseCookie resCookie = createRefreshTokenCookie(authenticationResponse.getRefreshToken());
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, resCookie.toString())
-                .body(helper.buildResponse(HttpStatus.OK, "Login successful", authenticationResponse));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, resCookie.toString())
+                    .body(helper.buildResponse(HttpStatus.OK, "Login successful", authenticationResponse));
+
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(helper.buildResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password", null));
+        }
     }
-
     @PostMapping("/sign-up")
     public ApiResponse<Void> signup(@Valid @RequestBody RegisterRequest request) throws MessagingException {
         authenticationService.register(request, Role.USER);
         return helper.buildResponse(HttpStatus.OK, "Signing up succeeded", null);
     }
-
     @GetMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(
             @CookieValue(name = "refresh_token", defaultValue = "invalid_token_value") String refreshToken) {

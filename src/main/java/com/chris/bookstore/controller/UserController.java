@@ -46,6 +46,7 @@ public class UserController {
         this.helper = helper;
     }
 
+    /** ADDRESSES **/
     @GetMapping("/addresses/all")
     @PreAuthorize("hasAuthority('GET_ADDRESSES')")
     public ApiResponse<List<AddressResponse>> getAllAddresses()
@@ -80,7 +81,7 @@ public class UserController {
         return helper.buildResponse(HttpStatus.OK,"Deleting addresses succeed", null);
 
     }
-
+    /** CART **/
     @GetMapping("/cart/items")
     @PreAuthorize("hasAuthority('GET_ITEMS')")
     public ApiResponse<List<CartItemsResponse>> getCartItems()
@@ -104,62 +105,15 @@ public class UserController {
         return helper.buildResponse(HttpStatus.OK,"Removing item to cart succeed!", null);
     }
 
-    @PostMapping("/orders/place/{addressId}")
+    /** ORDERS **/
+    @PostMapping("/orders/place")
     @PreAuthorize("hasAuthority('PLACE_ORDER')")
-    public ApiResponse<Void> placeAnOrder(@PathVariable(value = "addressId") Long addressId)
+    public ApiResponse<Void> placeAnOrder(@RequestBody @Valid PlaceOrderRequest request)
     {
-        orderService.placeAnOrder(addressId);
+        orderService.placeOrder(request);
         return helper.buildResponse(HttpStatus.OK,"Placing an order succeed!", null);
     }
 
-    @PostMapping("/shop/create")
-    @PreAuthorize("hasAuthority('CREATE_SHOP')")
-    public ApiResponse<ShopResponse> createShop(@Valid @RequestBody ShopRequest request)
-    {
-        return helper.buildResponse(HttpStatus.CREATED,"Shop created successfully", shopService.createShop(request));
-    }
-
-    @PutMapping("/shop/update")
-    @PreAuthorize("hasAuthority('EDIT_SHOP')")
-    public ApiResponse<Void> updateShop(@Valid @RequestBody ShopRequest request)
-    {
-        shopService.updateShop(request);
-        return helper.buildResponse(HttpStatus.OK,"Shop updated successfully", null);
-    }
-
-    @PutMapping("/shop/toggle-availability")
-    @PreAuthorize("hasAuthority('TOGGLE_SHOP_AVAILABILITY')")
-    public ApiResponse<Void> updateShopAvailability()
-    {
-        shopService.updateShopAvail();
-        return helper.buildResponse(HttpStatus.OK,"Shop updated successfully", null);
-    }
-
-    @PostMapping("/books/create")
-    @PreAuthorize("hasAuthority('CREATE_BOOKS')")
-    public ApiResponse<BookResponse> createBook(
-            @Valid @RequestPart("book") BookRequest request,
-            @RequestPart("image") MultipartFile file) throws IOException {
-        return helper.buildResponse(HttpStatus.CREATED,"Creating book succeed!", bookService.handleCreateBook(request, file));
-    }
-
-    @PutMapping("/books/update/{id}")
-    @PreAuthorize("hasAuthority('EDIT_BOOKS')")
-    public ApiResponse<BookResponse> updateBook(@Valid @RequestPart BookRequest request,
-                                                @RequestPart(name = "image") MultipartFile file,
-                                                @PathVariable(value = "id") Long id) throws IOException
-    {
-        return helper.buildResponse(HttpStatus.OK,"Updating book succeed!", bookService.handleUpdateBook(request,file, id));
-    }
-
-
-    @DeleteMapping("/books/delete/{id}")
-    @PreAuthorize("hasAuthority('DELETE_BOOKS')")
-    public ApiResponse<Void> deleteBook(@PathVariable(value = "id") Long id)
-    {
-        bookService.handleDeleteBook(id);
-        return helper.buildResponse(HttpStatus.OK,"Deleting book succeed!", null);
-    }
 
     @GetMapping("orders/all")
     @PreAuthorize("hasAuthority('READ_ORDERS')")
@@ -167,6 +121,15 @@ public class UserController {
     {
         return helper.buildResponse(HttpStatus.OK,"Get all orders succeed!", orderService.getAllOrders());
     }
+
+    @GetMapping("orders/by-status/{index}")
+    @PreAuthorize("hasAuthority('READ_ORDERS')")
+    public ApiResponse<List<OrderResponse>> getOrdersByStatus(@PathVariable(name = "index") Integer index) {
+        OrderStatus status = OrderStatus.fromCode(index); // Convert int to enum
+        List<OrderResponse> orders = orderService.getOrdersByStatus(status);
+        return helper.buildResponse(HttpStatus.OK, "Get all orders succeed!", orders);
+    }
+
 
     @PutMapping("orders/update/{orderId}/confirmed")
     @PreAuthorize("hasAuthority('UPDATE_ORDER_STATUS_CONFIRMED')")
@@ -190,6 +153,35 @@ public class UserController {
         return  helper.buildResponse(HttpStatus.OK,"Updating order's status cancelled succeed!", null);
     }
 
+    /** SHOP **/
+    @GetMapping("/shop")
+    public ApiResponse<ShopResponse> getShop(){
+        return helper.buildResponse(HttpStatus.OK,"Getting shop's info successfully", shopService.getShop());
+    }
+
+    @PostMapping("/shop/create")
+    @PreAuthorize("hasAuthority('CREATE_SHOP')")
+    public ApiResponse<ShopResponse> createShop(@Valid @RequestPart("shop") ShopRequest request,
+                                                @RequestPart("file") MultipartFile file ) throws IOException {
+        return helper.buildResponse(HttpStatus.CREATED,"Shop created successfully", shopService.createShop(request, file));
+    }
+
+    @PutMapping("/shop/update")
+    @PreAuthorize("hasAuthority('EDIT_SHOP')")
+    public ApiResponse<Void> updateShop(@Valid @RequestBody ShopRequest request)
+    {
+        shopService.updateShop(request);
+        return helper.buildResponse(HttpStatus.OK,"Shop updated successfully", null);
+    }
+
+    @PutMapping("/shop/toggle-availability")
+    @PreAuthorize("hasAuthority('TOGGLE_SHOP_AVAILABILITY')")
+    public ApiResponse<Void> updateShopAvailability()
+    {
+        shopService.updateShopAvail();
+        return helper.buildResponse(HttpStatus.OK,"Shop updated successfully", null);
+    }
+
     @PostMapping("/rate-shop/{shopId}")
     @PreAuthorize("hasAuthority('RATE_SHOP')")
     public ApiResponse<Void> rateShop(@PathVariable Long shopId,
@@ -203,5 +195,70 @@ public class UserController {
     public ApiResponse<Void> followShop(@PathVariable Long shopId) {
         userService.followShop(shopId);
         return  helper.buildResponse(HttpStatus.CREATED,"Rated succeed", null);
+    }
+    /** BOOKS **/
+    @PostMapping("/books/create")
+    @PreAuthorize("hasAuthority('CREATE_BOOKS')")
+    public ApiResponse<BookResponse> createBook(
+            @Valid @RequestPart("book") BookRequest request,
+            @RequestPart("image") MultipartFile file) throws IOException {
+        return helper.buildResponse(HttpStatus.CREATED,"Creating book succeed!", bookService.handleCreateBook(request, file));
+    }
+
+    @PutMapping("/books/update/{id}")
+    @PreAuthorize("hasAuthority('EDIT_BOOKS')")
+    public ApiResponse<BookResponse> updateBook(@Valid @RequestPart BookRequest request,
+                                                @RequestPart(name = "image") MultipartFile file,
+                                                @PathVariable(value = "id") Long id) throws IOException
+    {
+        return helper.buildResponse(HttpStatus.OK,"Updating book succeed!", bookService.handleUpdateBook(request,file, id));
+    }
+
+    @PatchMapping("/books/update/{id}/stock")
+    @PreAuthorize("hasAuthority('EDIT_BOOKS')")
+    public ApiResponse<BookResponse> updateStock(@PathVariable(value = "id") Long id,
+                                                 @RequestBody @Valid UpdateStockRequest request)
+    {
+        return helper.buildResponse(HttpStatus.OK,"Updating book's stock succeed!", bookService.handleUpdateBookStock(id, request));
+    }
+
+    @PatchMapping("/books/update/{id}/price")
+    @PreAuthorize("hasAuthority('EDIT_BOOKS')")
+    public ApiResponse<BookResponse> updatePrice(@PathVariable(value = "id") Long id,
+                                                 @RequestBody @Valid UpdatePriceRequest request)
+    {
+        return helper.buildResponse(HttpStatus.OK,"Updating book's price succeed!", bookService.handleUpdateBookPrice(id, request));
+    }
+
+    @PatchMapping("/books/update/{id}/image")
+    @PreAuthorize("hasAuthority('EDIT_BOOKS')")
+    public ApiResponse<BookResponse> updateImage(@PathVariable(value = "id") Long id,
+                                                 @RequestParam("file") MultipartFile file) throws IOException {
+        return helper.buildResponse(HttpStatus.OK,"Updating book's image succeed!", bookService.handleUpdateBookImage(id, file));
+    }
+
+    @PatchMapping("/books/update/{id}/info")
+    @PreAuthorize("hasAuthority('EDIT_BOOKS')")
+    public ApiResponse<BookResponse> updateImage(@PathVariable(value = "id") Long id,
+                                                 @RequestBody @Valid UpdateBookInfoRequest request) {
+        return helper.buildResponse(HttpStatus.OK,"Updating book's info succeed!", bookService.handleUpdateBookInfo(id, request));
+    }
+
+
+    @DeleteMapping("/books/delete/{id}")
+    @PreAuthorize("hasAuthority('DELETE_BOOKS')")
+    public ApiResponse<Void> deleteBook(@PathVariable(value = "id") Long id)
+    {
+        bookService.handleDeleteBook(id);
+        return helper.buildResponse(HttpStatus.OK,"Deleting book succeed!", null);
+    }
+
+    @PostMapping("/books/{id}/rate")
+    @PreAuthorize("hasAuthority('RATE_BOOK')")
+    public ApiResponse<Void> rateBook(@PathVariable(value = "id") Long id,
+                                      @RequestBody @Valid RatingRequest request)
+    {
+        bookService.handleRateBook(id, request);
+        return helper.buildResponse(HttpStatus.OK,"Deleting book succeed!", null);
     }
 }

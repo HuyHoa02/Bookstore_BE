@@ -26,12 +26,16 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -76,6 +80,7 @@ public class SecurityConfiguration {
                         .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) //403
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .anonymous(AbstractHttpConfigurer::disable) // Disable anonymous authentication
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer
                                 .decoder(jwtDecoder())
@@ -109,6 +114,33 @@ public class SecurityConfiguration {
             return jwt;
         };
     }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allow only requests from your frontend (adjust as needed for production)
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+
+        // Allow any headers
+        configuration.addAllowedHeader("*");
+
+        // Allow any HTTP method (GET, POST, etc.)
+        configuration.addAllowedMethod("*");
+
+        // Allow credentials (cookies, authorization headers)
+        configuration.setAllowCredentials(true); // This is crucial for enabling credentials!
+
+        // Cache preflight response for 1 hour
+        configuration.setMaxAge(3600L);
+
+        // Apply the CORS configuration to all endpoints
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
 
     public SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();

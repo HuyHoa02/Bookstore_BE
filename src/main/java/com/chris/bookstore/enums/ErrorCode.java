@@ -23,6 +23,9 @@ public enum ErrorCode {
     INVALID_RATE(1017,"User cant not rate their own shop"),
     CANNOT_FOLLOW_OWN_SHOP(1018,"User cant not follow their own shop"),
     ALREADY_FOLLOWED(1019,"User already followed this shop before"),
+    INVALID_CART_SELECTION(1020, "No cart items selected for ordering."),
+    BOOK_NOT_PURCHASED(1021, "User can not rate book that their never bought"),
+    BOOK_ALREADY_RATED(1022, "This book had been rate by user."),
     UNCATEGORIZED_EXCEPTION(9999,"Uncategorized exception occur")
     ;
 

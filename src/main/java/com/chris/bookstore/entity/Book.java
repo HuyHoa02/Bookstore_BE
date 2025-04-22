@@ -5,6 +5,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -29,6 +31,10 @@ public class Book {
     private Category category;
 
     private String imageUrl;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookRating> ratings = new ArrayList<>();
+
 
     @ManyToOne
     @JoinColumn(name = "shop_id")
@@ -104,6 +110,22 @@ public class Book {
         this.imageUrl = imageUrl;
     }
 
+    public List<BookRating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(List<BookRating> ratings) {
+        this.ratings = ratings;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -118,13 +140,5 @@ public class Book {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public Shop getShop() {
-        return shop;
-    }
-
-    public void setShop(Shop shop) {
-        this.shop = shop;
     }
 }

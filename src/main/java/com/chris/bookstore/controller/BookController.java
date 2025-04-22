@@ -34,4 +34,10 @@ public class BookController {
 
     }
 
+    @GetMapping("/by-shop/{id}")
+    public ApiResponse<List<BookResponse>> getBook(@PathVariable(value = "id") Long id){
+        return helper.buildResponse(HttpStatus.OK,"Get books succeed!",this.bookService.getBookByShop(id));
+
+    }
+
 }

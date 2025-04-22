@@ -1,5 +1,7 @@
 package com.chris.bookstore.enums;
 
+import com.chris.bookstore.exception.AppException;
+
 public enum OrderStatus {
     PENDING(0,"PENDING"),
     CONFIRMED(1, "CONFIRMED"),
@@ -21,5 +23,13 @@ public enum OrderStatus {
     OrderStatus(int code, String message) {
         this.code = code;
         this.message = message;
+    }
+    public static OrderStatus fromCode(int code) {
+        for (OrderStatus status : OrderStatus.values()) {
+            if (status.getCode() == code) {
+                return status;
+            }
+        }
+        throw new AppException(ErrorCode.STATUS_OPTION_INVALID);
     }
 }

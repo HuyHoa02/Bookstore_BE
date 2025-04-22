@@ -24,5 +24,6 @@ public enum Privilege {
     UPDATE_ADDRESSES,
     DELETE_ADDRESSES,
     RATE_SHOP,
-    FOLLOW_SHOP
+    FOLLOW_SHOP,
+    RATE_BOOK,
 }

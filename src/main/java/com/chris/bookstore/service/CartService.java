@@ -13,7 +13,10 @@ import com.chris.bookstore.repository.CartRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CartService {
@@ -91,10 +94,25 @@ public class CartService {
         cartRepository.save(existingCart);
     }
 
-    public List<CartItemsResponse> getCartItems(){
+    public List<CartItemsResponse> getCartItems() {
         User currentUser = this.userService.getCurrentUser();
         Cart currentCart = currentUser.getCart();
 
-        return currentCart.getCartItems().stream().map(CartItemsResponse::new).toList();
+        Map<Long, CartItemsResponse> groupedByShop = new HashMap<>();
+
+        for (CartItems item : currentCart.getCartItems()) {
+            long shopId = item.getBook().getShop().getId();
+
+            groupedByShop.computeIfAbsent(shopId, id -> {
+                CartItemsResponse response = new CartItemsResponse();
+                response.setShopId(id);
+                response.setShopName(item.getBook().getShop().getShopName());
+                return response;
+            });
+
+            groupedByShop.get(shopId).getItems().add(new CartItemsResponse.Item(item));
+        }
+
+        return new ArrayList<>(groupedByShop.values());
     }
 }

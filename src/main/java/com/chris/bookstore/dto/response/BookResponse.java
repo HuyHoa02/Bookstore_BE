@@ -4,6 +4,7 @@ import com.chris.bookstore.entity.Book;
 
 
 public class BookResponse {
+    private Long id;
     private String title;
     private String author;
     private String description;
@@ -12,6 +13,14 @@ public class BookResponse {
     private String categoryName;
     private String imageUrl;
     private Long shopId;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getTitle() {
         return title;
@@ -78,6 +87,7 @@ public class BookResponse {
     }
 
     public BookResponse(Book book) {
+        this.id = book.getId();
         this.title = book.getTitle();
         this.author = book.getAuthor();
         this.description = book.getDescription();

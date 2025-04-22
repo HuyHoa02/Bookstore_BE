@@ -14,7 +14,9 @@ import com.chris.bookstore.repository.ShopRepository;
 import com.chris.bookstore.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Set;
 
 @Service
@@ -24,21 +26,43 @@ public class ShopService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final ShopRatingService shopRatingService;
+    private final CloudinaryService cloudinaryService;
 
     public ShopService(ShopRepository shopRepository,
                        UserService userService,
                        AddressRepository addressRepository,
                        UserRepository userRepository,
-                       ShopRatingService shopRatingService)
+                       ShopRatingService shopRatingService,
+                       CloudinaryService cloudinaryService)
     {
         this.shopRepository = shopRepository;
         this.userService = userService;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
         this.shopRatingService = shopRatingService;
+        this.cloudinaryService = cloudinaryService;
     }
+
+    public ShopResponse getShop()
+    {
+        Shop shop = userService.getCurrentUser().getShop();
+        if(shop == null)
+            throw new AppException(ErrorCode.SHOP_NOT_EXISTED);
+
+        // Prepare response
+        ShopResponse res = new ShopResponse();
+        res.setShopName(shop.getShopName());
+        res.setShopAddress(shop.getShopAddress().toString());
+        res.setShopFollowers((long) shop.getFollowers().size());
+        res.setShopRating(this.shopRatingService.getShopAverageRating(shop.getId()));
+        res.setImgaeUrl(shop.getImageUrl());
+        res.setShopOwnerId(shop.getOwner().getId());
+
+        return res;
+    }
+
     @Transactional
-    public ShopResponse createShop(ShopRequest request) {
+    public ShopResponse createShop(ShopRequest request, MultipartFile file) throws IOException {
         User currentUser = this.userService.getCurrentUser();
         if (currentUser.getShop() != null)
             throw new AppException(ErrorCode.SHOP_EXISTED);
@@ -51,6 +75,9 @@ public class ShopService {
         Shop newShop = new Shop();
         newShop.setShopName(request.getShopName());
         newShop.setShopAddress(currentAddress);
+
+        String imageUrl = cloudinaryService.uploadFile(file).get("url").toString();
+        newShop.setImageUrl(imageUrl);
         newShop.setOwner(currentUser);
         currentUser.setShop(newShop);  // Important for bidirectional relationship
 
@@ -78,6 +105,7 @@ public class ShopService {
         res.setShopAddress(newShop.getShopAddress().toString());
         res.setShopFollowers((long) newShop.getFollowers().size());
         res.setShopRating(this.shopRatingService.getShopAverageRating(newShop.getId()));
+        res.setImgaeUrl(newShop.getImageUrl());
         res.setShopOwnerId(newShop.getOwner().getId());
 
         return res;
